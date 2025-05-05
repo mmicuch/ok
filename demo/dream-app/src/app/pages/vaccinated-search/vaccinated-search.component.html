@@ -1,0 +1,8 @@
+<h2>Search Records</h2>
+<input [(ngModel)]="searchTerm" placeholder="Name or vaccine" />
+<button (click)="search()">Search</button>
+<ul>
+  <li *ngFor="let r of results">
+    {{ r.osobaMeno }} → {{ r.vakcinaNazov }} ({{ r.datumAplikacie }})
+  </li>
+</ul>

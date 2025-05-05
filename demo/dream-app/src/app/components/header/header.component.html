@@ -1,0 +1,13 @@
+<nav>
+  <a routerLink="/home">Home</a> |
+  <a routerLink="/vaccinated">Vaccinated List</a> |
+  <a routerLink="/search">Search</a>
+  <ng-container *ngIf="auth.isLoggedIn()">
+    | <a routerLink="/admin/add-person">Add Person</a> |
+    <a routerLink="/admin/add-vaccine">Add Vaccine</a> |
+    <a routerLink="/admin/add-vaccination">Register Vaccination</a>
+  </ng-container>
+  <button *ngIf="auth.isLoggedIn()" (click)="logout()">Logout</button>
+  <a *ngIf="!auth.isLoggedIn()" routerLink="/login">Login</a>
+</nav>
+<hr />
