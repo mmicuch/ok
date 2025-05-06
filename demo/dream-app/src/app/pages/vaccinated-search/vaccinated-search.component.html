@@ -2,7 +2,8 @@
 
 <div class="search-container">
   <input [(ngModel)]="searchTerm" placeholder="Search by name or vaccine..." 
-         (keyup.enter)="search()" />
+         (input)="onSearchInput($event.target.value)" />
+  <!-- Button kept for accessibility and mobile devices with virtual keyboards -->
   <button (click)="search()">Search</button>
 </div>
 

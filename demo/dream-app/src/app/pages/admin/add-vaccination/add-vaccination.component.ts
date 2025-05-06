@@ -21,7 +21,7 @@ import { Person, Vaccine, Vaccination } from '../../../models/interfaces';
             required
             class="form-control"
             #osobaId="ngModel">
-            <option value="">Select Person</option>
+            <option [ngValue]="null">Select Person</option>
             <option *ngFor="let person of people" [ngValue]="person.id">
               {{person.meno}} {{person.priezvisko}}
             </option>
@@ -40,7 +40,7 @@ import { Person, Vaccine, Vaccination } from '../../../models/interfaces';
             required
             class="form-control"
             #vakcinaId="ngModel">
-            <option value="">Select Vaccine</option>
+            <option [ngValue]="null">Select Vaccine</option>
             <option *ngFor="let vaccine of vaccines" [ngValue]="vaccine.id">
               {{vaccine.nazov}} ({{vaccine.typ}})
             </option>
@@ -137,8 +137,8 @@ import { Person, Vaccine, Vaccination } from '../../../models/interfaces';
 })
 export class AddVaccinationComponent implements OnInit {
   vaccination: Vaccination = {
-    osobaId: 0,
-    vakcinaId: 0,
+    osobaId: null,  // Changed from 0 to null
+    vakcinaId: null, // Changed from 0 to null
     datumAplikacie: new Date().toISOString().split('T')[0],
     poradieDavky: 1
   };
@@ -154,6 +154,7 @@ export class AddVaccinationComponent implements OnInit {
   ngOnInit() {
     this.loading = true;
     
+    // Load people data
     this.apiService.getAllPersons().subscribe({
       next: (persons) => {
         this.people = persons;
@@ -167,6 +168,7 @@ export class AddVaccinationComponent implements OnInit {
       }
     });
 
+    // Load vaccines data
     this.apiService.getAllVaccines().subscribe({
       next: (vaccines) => {
         this.vaccines = vaccines;
@@ -182,8 +184,17 @@ export class AddVaccinationComponent implements OnInit {
   }
 
   onSubmit() {
-    this.loading = true;
+    // Reset message
     this.message = '';
+    this.loading = true;
+    
+    // Validate data before sending
+    if (!this.vaccination.osobaId || !this.vaccination.vakcinaId) {
+      this.message = 'Please select both person and vaccine';
+      this.messageType = 'failure';
+      this.loading = false;
+      return;
+    }
     
     console.log('Sending vaccination:', this.vaccination);
   
@@ -198,7 +209,8 @@ export class AddVaccinationComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error registering vaccination:', error);
-          this.message = 'Error registering vaccination';
+          this.message = 'Error registering vaccination: ' + 
+                         (error.error?.message || error.message || 'Unknown error');
           this.messageType = 'failure';
           this.loading = false;
         }
@@ -207,8 +219,8 @@ export class AddVaccinationComponent implements OnInit {
   
   private resetForm() {
     this.vaccination = {
-      osobaId: 0,
-      vakcinaId: 0,
+      osobaId: null,  // Changed from 0 to null
+      vakcinaId: null, // Changed from 0 to null
       datumAplikacie: new Date().toISOString().split('T')[0],
       poradieDavky: 1
     };

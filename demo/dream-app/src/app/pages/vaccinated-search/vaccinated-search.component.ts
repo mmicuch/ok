@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { VaccinationRecord } from '../../models/interfaces';
 import { Vaccine } from '../../models/interfaces';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-vaccinated-search',
@@ -13,7 +14,7 @@ import { Vaccine } from '../../models/interfaces';
   standalone: true,
   imports: [CommonModule, FormsModule]
 })
-export class VaccinatedSearchComponent implements OnInit {
+export class VaccinatedSearchComponent implements OnInit, OnDestroy {
   searchTerm = '';
   vaccineFilter = '';
   sortBy = 'name';
@@ -23,6 +24,10 @@ export class VaccinatedSearchComponent implements OnInit {
   loading = false;
   error = '';
   vaccines: Vaccine[] = [];
+  
+  // Add these for reactive search
+  private searchTerms = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   constructor(private http: HttpClient) {}
 
@@ -48,6 +53,26 @@ export class VaccinatedSearchComponent implements OnInit {
           console.error('Error loading vaccination records:', err);
         }
       });
+      
+    // Set up reactive search
+    this.searchTerms.pipe(
+      takeUntil(this.destroy$),
+      debounceTime(300), // Wait for 300ms pause in events
+      distinctUntilChanged() // Only emit if value is different from previous
+    ).subscribe(term => {
+      this.searchTerm = term;
+      this.search();
+    });
+  }
+  
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  // Update this method to handle input changes
+  onSearchInput(term: string) {
+    this.searchTerms.next(term);
   }
 
   search() {

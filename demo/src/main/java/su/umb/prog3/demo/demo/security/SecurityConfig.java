@@ -42,8 +42,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/vakcina/all").permitAll()
                 .requestMatchers("/api/osoby/all").permitAll()
                 .requestMatchers("/api/osobavakcina").permitAll()
-                .requestMatchers("/api/osobavakcina/search").permitAll()
                 // Authenticated endpoints
+                .requestMatchers("/api/osobavakcina/search").authenticated() // Require authentication
                 .requestMatchers("/api/admin/**").authenticated()
                 .requestMatchers("/api/vakcina/add").authenticated()
                 .requestMatchers("/api/vakcina/{id}").authenticated()
@@ -65,13 +65,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
+        config.setAllowedOrigins(List.of("http://localhost:4200")); // Allow frontend origin
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Allow necessary HTTP methods
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type")); // Allow specific headers
+        config.setAllowCredentials(true); // Allow credentials
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration("/**", config); // Apply CORS settings globally
         return source;
     }
 
