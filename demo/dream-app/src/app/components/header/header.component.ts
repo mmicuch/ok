@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -10,8 +10,27 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule, RouterModule]
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit {
+  isScrolled = false;
+
   constructor(public auth: AuthService, private router: Router) {}
+
+  ngOnInit() {
+    this.checkScroll();
+  }
+
+  @HostListener('window:scroll')
+  checkScroll() {
+    this.isScrolled = window.pageYOffset > 50;
+    const navbar = document.getElementById('main-navbar');
+    if (navbar) {
+      if (this.isScrolled) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+    }
+  }
 
   logout() {
     this.auth.logout();
