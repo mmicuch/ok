@@ -7,8 +7,9 @@
     text-align: center;
     padding: 0;
     margin: 0;
-    background-color: #f5f5f5;
-  }
+    background-image: url(https://st.depositphotos.com/4218696/60583/i/450/depositphotos_605831908-stock-photo-medical-smiling-black-male-doctor.jpg);
+    background-size: cover;
+}
   
   .hero-section {
     max-width: auto;

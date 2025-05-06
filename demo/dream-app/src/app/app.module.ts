@@ -2,9 +2,10 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { routes } from './app.routes';
+import { AuthInterceptor } from './services/auth.interceptor';
 
 @NgModule({
   imports: [
@@ -15,6 +16,7 @@ import { routes } from './app.routes';
     HttpClientModule,
     RouterModule.forRoot(routes)
   ],
-  providers: []
+  providers: [    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+  ],
 })
 export class AppModule { }

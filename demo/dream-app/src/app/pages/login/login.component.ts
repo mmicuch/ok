@@ -15,15 +15,32 @@ export class LoginComponent {
   username = '';
   password = '';
   error = '';
+  loading = false;
 
   constructor(private auth: AuthService, private router: Router) {}
 
   login() {
-    this.auth.login(this.username, this.password).subscribe(success => {
-      if (success) {
-        this.router.navigate(['/home']);
-      } else {
+    console.log('Attempting login with:', this.username, this.password); // Debugging log
+    if (!this.username || !this.password) {
+      this.error = 'Please enter username and password';
+      return;
+    }
+
+    this.loading = true;
+    this.error = '';
+
+    this.auth.login(this.username, this.password).subscribe({
+      next: (success) => {
+        this.loading = false;
+        if (success) {
+          console.log('Login successful, navigating to home'); // Debugging log
+          this.router.navigate(['/home']);
+        }
+      },
+      error: (err) => {
+        this.loading = false;
         this.error = 'Invalid credentials';
+        console.error('Login error:', err); // Debugging log
       }
     });
   }
