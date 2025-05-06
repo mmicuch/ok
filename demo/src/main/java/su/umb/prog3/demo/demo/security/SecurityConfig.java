@@ -37,16 +37,23 @@ public class SecurityConfig {
             .cors().and()
             .csrf().disable()
             .authorizeHttpRequests(auth -> auth
-                // Verejné endpointy
-                .requestMatchers("/api/auth/**").permitAll()
+                // Public endpoints
                 .requestMatchers("/api/auth/login").permitAll()
-                .requestMatchers("/api/vakcina/**").permitAll()
-                .requestMatchers("/api/osoba/**").permitAll()
-                .requestMatchers("/api/osoba-vakcina/**").permitAll()
-                // Admin endpointy vyžadujúce autentifikáciu
+                .requestMatchers("/api/vakcina/all").permitAll()
+                .requestMatchers("/api/osoby/all").permitAll()
+                .requestMatchers("/api/osobavakcina").permitAll()
+                .requestMatchers("/api/osobavakcina/search").permitAll()
+                // Authenticated endpoints
                 .requestMatchers("/api/admin/**").authenticated()
-                // Ostatné endpointy
-                .anyRequest().permitAll()
+                .requestMatchers("/api/vakcina/add").authenticated()
+                .requestMatchers("/api/vakcina/{id}").authenticated()
+                .requestMatchers("/api/osoby/add").authenticated()
+                .requestMatchers("/api/osoby/remove/**").authenticated()
+                .requestMatchers("/api/osoby/vakcina/**").authenticated()
+                .requestMatchers("/api/osobavakcina/add").authenticated()
+                .requestMatchers("/api/osobavakcina/{id}").authenticated()
+                // Other endpoints
+                .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider())

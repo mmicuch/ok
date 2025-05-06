@@ -1,120 +1,81 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 import { Person, Vaccine, Vaccination } from '../models/interfaces';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
-  private endpoints = {
-    personAdd: '/osoby/add',
-    personAll: '/osoby/all',
-
-    vaccineAdd: '/vakcina/add',
-    vaccineAll: '/vakcina/all',
-
-    vaccination: '/osobavakcina/add'
-  };
-
-  private httpOptions = {
-    headers: new HttpHeaders({
-      'Content-Type': 'application/json'
-    }),
-    responseType: 'text' as 'json'  // This helps with empty responses
-  };
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
-  addPerson(person: Person): Observable<any> {
-    return this.http.post(
-      `${environment.apiUrl}${this.endpoints.personAdd}`, 
-      person,
-      this.httpOptions
-    ).pipe(
-      map(response => {
-        // Handle empty response or parse JSON if there is content
-        if (response && response !== '') {
-          try {
-            return JSON.parse(response as string);
-          } catch (e) {
-            return { message: 'Success' };
-          }
-        }
-        return { message: 'Success' };
-      }),
-      catchError(error => {
-        console.error('Error adding person:', error);
-        return throwError(() => error);
-      })
+  private handleError(error: HttpErrorResponse) {
+    console.error('API Error:', error);
+    
+    if (error.error instanceof ErrorEvent) {
+      // Client-side error
+      console.error('Client-side error:', error.error.message);
+    } else {
+      // Server-side error
+      console.error(`Backend returned code ${error.status}, body was:`, error.error);
+    }
+    
+    return throwError(() => new Error('Something went wrong with the API request. Please try again later.'));
+  }
+
+  // Person endpoints
+  getAllPersons(): Observable<Person[]> {
+    return this.http.get<Person[]>(`${this.apiUrl}/osoba/all`).pipe(
+      tap(data => console.log('Fetched persons:', data)),
+      catchError(this.handleError)
     );
   }
 
-  getAllPersons(): Observable<Person[]> {
-    return this.http.get<Person[]>(`${environment.apiUrl}${this.endpoints.personAll}`);
+  addPerson(person: Person): Observable<any> {
+    return this.http.post(`${this.apiUrl}/osoba/add`, person).pipe(
+      tap(response => console.log('Person added:', response)),
+      catchError(this.handleError)
+    );
+  }
+
+  // Vaccine endpoints
+  getAllVaccines(): Observable<Vaccine[]> {
+    return this.http.get<Vaccine[]>(`${this.apiUrl}/vakcina/all`).pipe(
+      tap(data => console.log('Fetched vaccines:', data)),
+      catchError(this.handleError)
+    );
   }
 
   addVaccine(vaccine: Vaccine): Observable<any> {
-    return this.http.post(
-      `${environment.apiUrl}${this.endpoints.vaccineAdd}`, 
-      vaccine,
-      this.httpOptions
-    ).pipe(
-      map(response => {
-        // Handle empty response or parse JSON if there is content
-        if (response && response !== '') {
-          try {
-            return JSON.parse(response as string);
-          } catch (e) {
-            return { message: 'Success' };
-          }
-        }
-        return { message: 'Success' };
-      }),
-      catchError(error => {
-        console.error('Error adding vaccine:', error);
-        return throwError(() => error);
-      })
+    return this.http.post(`${this.apiUrl}/vakcina/add`, vaccine).pipe(
+      tap(response => console.log('Vaccine added:', response)),
+      catchError(this.handleError)
     );
   }
 
-  getAllVaccines(): Observable<Vaccine[]> {
-    return this.http.get<Vaccine[]>(`${environment.apiUrl}${this.endpoints.vaccineAll}`);
+  // Vaccination endpoints
+  registerVaccination(vaccination: Vaccination): Observable<any> {
+    return this.http.post(`${this.apiUrl}/osoba-vakcina/add`, vaccination).pipe(
+      tap(response => console.log('Vaccination registered:', response)),
+      catchError(this.handleError)
+    );
   }
 
-  registerVaccination(vaccination: Vaccination): Observable<any> {
-    // Format the date in YYYY-MM-DD format for Java's LocalDate
-    const formattedVaccination = {
-      ...vaccination,
-      // Ensure the ID values are numbers, not strings
-      osobaId: typeof vaccination.osobaId === 'string' ? parseInt(vaccination.osobaId, 10) : vaccination.osobaId,
-      vakcinaId: typeof vaccination.vakcinaId === 'string' ? parseInt(vaccination.vakcinaId, 10) : vaccination.vakcinaId
-    };
-    
-    console.log('Formatted vaccination payload:', formattedVaccination);
-    
-    return this.http.post(
-      `${environment.apiUrl}/osobavakcina/add`,
-      formattedVaccination,
-      this.httpOptions
-    ).pipe(
-      map(response => {
-        // Handle empty response or parse JSON if there is content
-        if (response && response !== '') {
-          try {
-            return JSON.parse(response as string);
-          } catch (e) {
-            return { message: 'Success' };
-          }
-        }
-        return { message: 'Success' };
-      }),
-      catchError(error => {
-        console.error('Error registering vaccination:', error);
-        return throwError(() => error);
-      })
+  getVaccinationsByPerson(personId: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/osoba-vakcina/by-osoba/${personId}`).pipe(
+      tap(data => console.log(`Fetched vaccinations for person ${personId}:`, data)),
+      catchError(this.handleError)
+    );
+  }
+
+  searchVaccinatedPersons(searchTerm: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/osoba-vakcina/search?term=${searchTerm}`).pipe(
+      tap(data => console.log('Search results:', data)),
+      catchError(this.handleError)
     );
   }
 }

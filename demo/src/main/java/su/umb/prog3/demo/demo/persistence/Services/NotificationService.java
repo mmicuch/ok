@@ -13,24 +13,19 @@ public class NotificationService {
 
     private final OsobaVakcinaRepository osobaVakcinaRepository;
 
-    // Injecting the repository to access the vaccination data
     public NotificationService(OsobaVakcinaRepository osobaVakcinaRepository) {
         this.osobaVakcinaRepository = osobaVakcinaRepository;
     }
 
-    // Scheduled task that runs once a day
     @Scheduled(cron = "0 0 12 * * ?")  // Run every day at 12:00 PM
     public void checkVaccinationExpiry() {
-        // Fetch all vaccination records
         List<OsobaVakcina> vaccinations = osobaVakcinaRepository.findAll();
 
-        // Check if any vaccination has expired
         for (OsobaVakcina vaccination : vaccinations) {
-            LocalDate expiryDate = vaccination.getDatumAplikacieEntity().plusMonths(6);  // Assuming vaccine expiry is 6 months
+            // Updated to use consistent method naming
+            LocalDate expiryDate = vaccination.getDatumAplikacie().plusMonths(6);
             if (LocalDate.now().isAfter(expiryDate)) {
-                // Send notification (or log, or alert) - this could be a simple print or sending an email
-                System.out.println("Vaccine expired for " + vaccination.getOsobaEntity().getMeno());
-                // You could also use an email service here to notify the person, or store expired vaccinations in a log table
+                System.out.println("Vaccine expired for " + vaccination.getOsoba().getMeno());
             }
         }
     }

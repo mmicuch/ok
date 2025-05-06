@@ -1,3 +1,4 @@
+
 package su.umb.prog3.demo.demo.persistence.Services;
 
 import org.springframework.stereotype.Service;
@@ -11,8 +12,6 @@ import su.umb.prog3.demo.demo.persistence.repos.VakcinaRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Collection;
-
 
 @Service
 public class OsobaService {
@@ -37,26 +36,23 @@ public class OsobaService {
         osobaRepository.deleteById(id);
     }
 
-    // Create Vaccine
-    public Vakcina createVakcina(Vakcina vakcina) {
-        return vakcinaRepository.save(vakcina);
+    // Get all Persons
+    public List<OsobaEntity> getAllOsoby() {
+        List<OsobaEntity> osoby = new ArrayList<>();
+        osobaRepository.findAll().forEach(osoby::add);
+        return osoby;
     }
 
-    // Remove Vaccine
-    public void removeVakcina(Long id) {
-        vakcinaRepository.deleteById(id);
-    }
-
-    // Add Vaccination Record
+    // Add Vaccination Record (updated to use consistent method names)
     public OsobaVakcina addVakcinaToOsoba(Long osobaId, Long vakcinaId, LocalDate datumAplikacie, int poradieDavky) {
         OsobaEntity osoba = osobaRepository.findById(osobaId).orElseThrow(() -> new RuntimeException("Person not found"));
         Vakcina vakcina = vakcinaRepository.findById(vakcinaId).orElseThrow(() -> new RuntimeException("Vaccine not found"));
         
         OsobaVakcina osobaVakcina = new OsobaVakcina();
-        osobaVakcina.setOsobaEntity(osoba);
-        osobaVakcina.setVakcinaEntity(vakcina);
-        osobaVakcina.setDatumAplikacieEntity(datumAplikacie);
-        osobaVakcina.setPoradieDavkyEntity(poradieDavky);
+        osobaVakcina.setOsoba(osoba);
+        osobaVakcina.setVakcina(vakcina);
+        osobaVakcina.setDatumAplikacie(datumAplikacie);
+        osobaVakcina.setPoradieDavky(poradieDavky);
 
         return osobaVakcinaRepository.save(osobaVakcina);
     }
@@ -65,13 +61,4 @@ public class OsobaService {
     public void removeVakcinaFromOsoba(Long id) {
         osobaVakcinaRepository.deleteById(id);
     }
-
-    public List<OsobaEntity> getAllOsoby() {
-    List<OsobaEntity> osoby = new ArrayList<>();
-    osobaRepository.findAll().forEach(osoby::add);
-    return osoby;
-    }
-
-
 }
-

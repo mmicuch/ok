@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { Observable, throwError, of } from 'rxjs';
+import { map, catchError, tap } from 'rxjs/operators';
+import { Router } from '@angular/router';
 
 interface AuthResponse {
   token: string;
@@ -12,21 +13,25 @@ interface AuthResponse {
 export class AuthService {
   private tokenKey = 'token';
   private usernameKey = 'username';
-  private apiUrl = '/api/auth';
+  private apiUrl = '/api/auth';  // Make sure this matches your backend
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
   login(username: string, password: string): Observable<boolean> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { username, password })
       .pipe(
+        tap(response => console.log('Login response:', response)), // Added for debugging
         map(response => {
-          console.log('Login successful:', response); // Debugging log
-          localStorage.setItem(this.tokenKey, response.token);
-          localStorage.setItem(this.usernameKey, response.username);
-          return true;
+          if (response && response.token) {
+            localStorage.setItem(this.tokenKey, response.token);
+            localStorage.setItem(this.usernameKey, response.username);
+            console.log('Token stored:', response.token);
+            return true;
+          }
+          return false;
         }),
         catchError(err => {
-          console.error('Authentication failed:', err); // Debugging log
+          console.error('Authentication failed:', err);
           return throwError(() => new Error('Authentication failed'));
         })
       );
@@ -35,10 +40,12 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.usernameKey);
+    this.router.navigate(['/login']);
   }
 
   isLoggedIn(): boolean {
-    return !!localStorage.getItem(this.tokenKey);
+    const token = this.getToken();
+    return !!token;
   }
 
   getToken(): string | null {

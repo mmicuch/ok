@@ -8,7 +8,6 @@ import su.umb.prog3.demo.demo.persistence.Services.OsobaService;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api/osoby")
@@ -37,7 +36,11 @@ public class OsobaController {
     }
 
     @PostMapping("/vakcina/add")
-    public ResponseEntity<OsobaVakcina> addVakcinaToOsoba(@RequestParam Long osobaId, @RequestParam Long vakcinaId, @RequestParam LocalDate datumAplikacie, @RequestParam int poradieDavky) {
+    public ResponseEntity<OsobaVakcina> addVakcinaToOsoba(
+            @RequestParam Long osobaId,
+            @RequestParam Long vakcinaId,
+            @RequestParam LocalDate datumAplikacie,
+            @RequestParam int poradieDavky) {
         return ResponseEntity.ok(osobaService.addVakcinaToOsoba(osobaId, vakcinaId, datumAplikacie, poradieDavky));
     }
 
@@ -46,4 +49,6 @@ public class OsobaController {
         osobaService.removeVakcinaFromOsoba(id);
         return ResponseEntity.ok("Vaccination record removed successfully");
     }
+
+    
 }

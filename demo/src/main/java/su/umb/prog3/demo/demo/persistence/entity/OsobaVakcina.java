@@ -21,49 +21,7 @@ public class OsobaVakcina {
     private LocalDate datumAplikacie;
     private int poradieDavky;
 
-    // ✅ Custom getters/setters (you already had)
-    public Long getIdEntity() {
-        return id;
-    }
-
-    public void setIdEntity(Long id) {
-        this.id = id;
-    }
-
-    public OsobaEntity getOsobaEntity() {
-        return osoba;
-    }
-
-    public void setOsobaEntity(OsobaEntity osoba) {
-        this.osoba = osoba;
-    }
-
-    public Vakcina getVakcinaEntity() {
-        return vakcina;
-    }
-
-    public void setVakcinaEntity(Vakcina vakcina) {
-        this.vakcina = vakcina;
-    }
-
-    public LocalDate getDatumAplikacieEntity() {
-        return datumAplikacie;
-    }
-
-    public void setDatumAplikacieEntity(LocalDate datumAplikacie) {
-        this.datumAplikacie = datumAplikacie;
-    }
-
-    public int getPoradieDavkyEntity() {
-        return poradieDavky;
-    }
-
-    public void setPoradieDavkyEntity(int poradieDavky) {
-        this.poradieDavky = poradieDavky;
-    }
-
-    // ✅ Standard getters/setters required for JSON mapping
-
+    // Standard getters/setters
     public Long getId() {
         return id;
     }
@@ -104,14 +62,56 @@ public class OsobaVakcina {
         this.poradieDavky = poradieDavky;
     }
 
+    // For backward compatibility with existing code
+    public Long getIdEntity() {
+        return id;
+    }
+
+    public void setIdEntity(Long id) {
+        this.id = id;
+    }
+
+    public OsobaEntity getOsobaEntity() {
+        return osoba;
+    }
+
+    public void setOsobaEntity(OsobaEntity osoba) {
+        this.osoba = osoba;
+    }
+
+    public Vakcina getVakcinaEntity() {
+        return vakcina;
+    }
+
+    public void setVakcinaEntity(Vakcina vakcina) {
+        this.vakcina = vakcina;
+    }
+
+    public LocalDate getDatumAplikacieEntity() {
+        return datumAplikacie;
+    }
+
+    public void setDatumAplikacieEntity(LocalDate datumAplikacie) {
+        this.datumAplikacie = datumAplikacie;
+    }
+
+    public int getPoradieDavkyEntity() {
+        return poradieDavky;
+    }
+
+    public void setPoradieDavkyEntity(int poradieDavky) {
+        this.poradieDavky = poradieDavky;
+    }
+
     @Override
     public String toString() {
         return "OsobaVakcina{" +
                 "id=" + id +
                 ", osoba=" + (osoba != null ? osoba.getId() : null) +
-                ", vakcina=" + (vakcina != null ? vakcina.getIdEntity() : null) +
+                ", vakcina=" + (vakcina != null ? vakcina.getId() : null) +
                 ", datumAplikacie=" + datumAplikacie +
                 ", poradieDavky=" + poradieDavky +
                 '}';
     }
 }
+
