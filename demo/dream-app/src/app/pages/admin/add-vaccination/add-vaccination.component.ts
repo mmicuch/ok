@@ -137,8 +137,8 @@ import { Person, Vaccine, Vaccination } from '../../../models/interfaces';
 })
 export class AddVaccinationComponent implements OnInit {
   vaccination: Vaccination = {
-    osobaId: null,  // Changed from 0 to null
-    vakcinaId: null, // Changed from 0 to null
+    osobaId: null,
+    vakcinaId: null,
     datumAplikacie: new Date().toISOString().split('T')[0],
     poradieDavky: 1
   };
@@ -196,9 +196,18 @@ export class AddVaccinationComponent implements OnInit {
       return;
     }
     
-    console.log('Sending vaccination:', this.vaccination);
+    // Create a copy of the vaccination object to avoid mutating the original
+    const vaccinationToSend = {
+      ...this.vaccination,
+      // Ensure date is properly formatted as YYYY-MM-DD string
+      datumAplikacie: typeof this.vaccination.datumAplikacie === 'string' 
+        ? this.vaccination.datumAplikacie 
+        : new Date(this.vaccination.datumAplikacie).toISOString().split('T')[0]
+    };
+    
+    console.log('Sending vaccination:', vaccinationToSend);
   
-    this.apiService.registerVaccination(this.vaccination)
+    this.apiService.registerVaccination(vaccinationToSend)
       .subscribe({
         next: (response) => {
           console.log('Vaccination registered successfully:', response);
@@ -219,8 +228,8 @@ export class AddVaccinationComponent implements OnInit {
   
   private resetForm() {
     this.vaccination = {
-      osobaId: null,  // Changed from 0 to null
-      vakcinaId: null, // Changed from 0 to null
+      osobaId: null,
+      vakcinaId: null,
       datumAplikacie: new Date().toISOString().split('T')[0],
       poradieDavky: 1
     };

@@ -70,9 +70,10 @@ export class VaccinatedSearchComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // Update this method to handle input changes
-  onSearchInput(term: string) {
-    this.searchTerms.next(term);
+  // Fix this method to handle input changes properly
+  onSearchInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.searchTerms.next(input.value);
   }
 
   search() {

@@ -1,32 +1,34 @@
-// src/app/models/interfaces.ts
+// Predpokladám, že tento súbor by mal byť v src/app/models/interfaces.ts
 
 export interface Person {
-  id?: number;
+  id: number;
   meno: string;
   priezvisko: string;
+  rodCislo?: string;
   datumNarodenia?: string;
-  rokNarodenia?: number;
-  pohlavie?: string;
+  ulica?: string;
+  cislo?: string;
+  mesto?: string;
+  psc?: string;
 }
 
 export interface Vaccine {
-  id?: number;
+  id: number;
   nazov: string;
   typ: string;
-  vyrobca: string;
+  pocetDavok?: number;
 }
 
 export interface Vaccination {
   id?: number;
-  osobaId: number;
-  vakcinaId: number;
-  datumAplikacie: string;
+  osobaId: number | null;
+  vakcinaId: number | null;
+  datumAplikacie: string | Date;
   poradieDavky: number;
 }
 
-// Add this interface for the vaccinated person records
 export interface VaccinationRecord {
-  id?: number;
+  id: number;
   osobaId: number;
   vakcinaId: number;
   datumAplikacie: string;

@@ -24,14 +24,12 @@ export class ApiService {
   
   // Register vaccination - Fixed version
   registerVaccination(vaccination: Vaccination): Observable<any> {
-    // Make sure date is formatted correctly
+    // Create a clean payload ensuring it matches the backend expectations
     const payload = {
-      ...vaccination,
-      // If date is a string (yyyy-MM-dd format), keep it as is
-      // Otherwise ensure it's properly formatted
-      datumAplikacie: typeof vaccination.datumAplikacie === 'string' ? 
-        vaccination.datumAplikacie : 
-        this.formatDate(vaccination.datumAplikacie)
+      osobaId: vaccination.osobaId,
+      vakcinaId: vaccination.vakcinaId,
+      datumAplikacie: vaccination.datumAplikacie,
+      poradieDavky: vaccination.poradieDavky
     };
     
     // Debug log
