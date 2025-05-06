@@ -64,5 +64,21 @@ public ResponseEntity<OsobaVakcina> createOsobaVakcina(@RequestBody OsobaVakcina
     }
 
 
+    // Add this method to your OsobaVakcinaController class:
+
+    @GetMapping("/search")
+    public ResponseEntity<List<OsobaVakcinaDTO>> searchOsobaVakcina(@RequestParam String query) {
+        // Convert to lowercase for case-insensitive search
+        String lowerQuery = query.toLowerCase();
+        
+        List<OsobaVakcinaDTO> results = osobaVakcinaService.getAllOsobaVakcina().stream()
+            .filter(ov -> 
+                (ov.getOsoba().getMeno() + " " + ov.getOsoba().getPriezvisko()).toLowerCase().contains(lowerQuery) ||
+                ov.getVakcina().getNazov().toLowerCase().contains(lowerQuery))
+            .map(OsobaVakcinaDTO::new)
+            .toList();
+        
+        return ResponseEntity.ok(results);
+    }
 
 }

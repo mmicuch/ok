@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { VaccinationRecord } from '../../models/interfaces';
 
 @Component({
   selector: 'app-vaccinated-search',
@@ -13,13 +14,31 @@ import { environment } from '../../../environments/environment';
 })
 export class VaccinatedSearchComponent {
   searchTerm = '';
-  results: any[] = [];
+  results: VaccinationRecord[] = [];
+  loading = false;
+  error = '';
 
   constructor(private http: HttpClient) {}
 
   search() {
     if (!this.searchTerm.trim()) return;
-    this.http.get<any[]>(`${environment.apiUrl}/osobavakciny/search?query=${encodeURIComponent(this.searchTerm)}`)
-      .subscribe(data => this.results = data);
+    
+    this.loading = true;
+    this.error = '';
+    
+    // Use the correct endpoint and add error handling
+    this.http.get<VaccinationRecord[]>(`${environment.apiUrl}/osobavakcina/search?query=${encodeURIComponent(this.searchTerm)}`)
+      .subscribe({
+        next: (data) => {
+          this.results = data;
+          this.loading = false;
+          console.log('Search results:', data);
+        },
+        error: (err) => {
+          this.error = `Error searching: ${err.message}`;
+          this.loading = false;
+          console.error('Error while searching:', err);
+        }
+      });
   }
 }

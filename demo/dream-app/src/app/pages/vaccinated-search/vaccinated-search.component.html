@@ -1,8 +1,30 @@
-<h2>Search Records</h2>
-<input [(ngModel)]="searchTerm" placeholder="Name or vaccine" />
-<button (click)="search()">Search</button>
-<ul>
+<h2>Search Vaccination Records</h2>
+
+<div class="search-container">
+  <input [(ngModel)]="searchTerm" placeholder="Search by name or vaccine..." 
+         (keyup.enter)="search()" />
+  <button (click)="search()">Search</button>
+</div>
+
+<div *ngIf="loading" class="loading">
+  Searching...
+</div>
+
+<div *ngIf="error" class="error-message">
+  {{ error }}
+</div>
+
+<div *ngIf="!loading && searchTerm && results.length === 0" class="no-results">
+  No results found for "{{ searchTerm }}".
+</div>
+
+<ul *ngIf="!loading && results.length > 0" class="results-list">
   <li *ngFor="let r of results">
-    {{ r.osobaMeno }} → {{ r.vakcinaNazov }} ({{ r.datumAplikacie }})
+    <strong>{{ r.osobaMeno }} {{ r.osobaPriezvisko }}</strong> - 
+    {{ r.vakcinaNazov }} ({{ r.vakcinaTyp }})
+    <div class="details">
+      Date: {{ r.datumAplikacie | date:'dd.MM.yyyy' }} | 
+      Dose: {{ r.poradieDavky }}
+    </div>
   </li>
 </ul>

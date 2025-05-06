@@ -5,20 +5,42 @@ import su.umb.prog3.demo.demo.persistence.entity.OsobaVakcina;
 import java.time.LocalDate;
 
 public class OsobaVakcinaDTO {
+    private Long id;
     private Long osobaId;
     private Long vakcinaId;
     private LocalDate datumAplikacie;
     private int poradieDavky;
+    
+    // Add these fields to match the frontend expectations
+    private String osobaMeno;
+    private String osobaPriezvisko;
+    private String vakcinaNazov;
+    private String vakcinaTyp;
 
     public OsobaVakcinaDTO() {
         // default constructor
     }
 
     public OsobaVakcinaDTO(OsobaVakcina entity) {
+        this.id = entity.getId();
         this.osobaId = entity.getOsoba().getId();
         this.vakcinaId = entity.getVakcina().getId();
         this.datumAplikacie = entity.getDatumAplikacie();
         this.poradieDavky = entity.getPoradieDavky();
+        
+        // Set additional fields
+        this.osobaMeno = entity.getOsoba().getMeno();
+        this.osobaPriezvisko = entity.getOsoba().getPriezvisko();
+        this.vakcinaNazov = entity.getVakcina().getNazov();
+        this.vakcinaTyp = entity.getVakcina().getTyp().toString();
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Long getOsobaId() {
@@ -51,5 +73,37 @@ public class OsobaVakcinaDTO {
 
     public void setPoradieDavky(int poradieDavky) {
         this.poradieDavky = poradieDavky;
+    }
+
+    public String getOsobaMeno() {
+        return osobaMeno;
+    }
+
+    public void setOsobaMeno(String osobaMeno) {
+        this.osobaMeno = osobaMeno;
+    }
+
+    public String getOsobaPriezvisko() {
+        return osobaPriezvisko;
+    }
+
+    public void setOsobaPriezvisko(String osobaPriezvisko) {
+        this.osobaPriezvisko = osobaPriezvisko;
+    }
+
+    public String getVakcinaNazov() {
+        return vakcinaNazov;
+    }
+
+    public void setVakcinaNazov(String vakcinaNazov) {
+        this.vakcinaNazov = vakcinaNazov;
+    }
+
+    public String getVakcinaTyp() {
+        return vakcinaTyp;
+    }
+
+    public void setVakcinaTyp(String vakcinaTyp) {
+        this.vakcinaTyp = vakcinaTyp;
     }
 }

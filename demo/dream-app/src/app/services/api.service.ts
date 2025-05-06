@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { map, catchError } from 'rxjs/operators';
 import { Person, Vaccine, Vaccination } from '../models/interfaces';
 
 @Injectable({
@@ -19,16 +19,37 @@ export class ApiService {
     vaccination: '/osobavakcina/add'
   };
 
+  private httpOptions = {
+    headers: new HttpHeaders({
+      'Content-Type': 'application/json'
+    }),
+    responseType: 'text' as 'json'  // This helps with empty responses
+  };
+
   constructor(private http: HttpClient) {}
 
   addPerson(person: Person): Observable<any> {
-    return this.http.post(`${environment.apiUrl}${this.endpoints.personAdd}`, person)
-      .pipe(
-        catchError(error => {
-          console.error('Error adding person:', error);
-          return throwError(() => error);
-        })
-      );
+    return this.http.post(
+      `${environment.apiUrl}${this.endpoints.personAdd}`, 
+      person,
+      this.httpOptions
+    ).pipe(
+      map(response => {
+        // Handle empty response or parse JSON if there is content
+        if (response && response !== '') {
+          try {
+            return JSON.parse(response as string);
+          } catch (e) {
+            return { message: 'Success' };
+          }
+        }
+        return { message: 'Success' };
+      }),
+      catchError(error => {
+        console.error('Error adding person:', error);
+        return throwError(() => error);
+      })
+    );
   }
 
   getAllPersons(): Observable<Person[]> {
@@ -36,28 +57,64 @@ export class ApiService {
   }
 
   addVaccine(vaccine: Vaccine): Observable<any> {
-    return this.http.post<any>(`${environment.apiUrl}${this.endpoints.vaccineAdd}`, vaccine)
-      .pipe(
-        catchError(error => {
-          console.error('Error adding vaccine:', error);
-          return throwError(() => error);
-        })
-      );
+    return this.http.post(
+      `${environment.apiUrl}${this.endpoints.vaccineAdd}`, 
+      vaccine,
+      this.httpOptions
+    ).pipe(
+      map(response => {
+        // Handle empty response or parse JSON if there is content
+        if (response && response !== '') {
+          try {
+            return JSON.parse(response as string);
+          } catch (e) {
+            return { message: 'Success' };
+          }
+        }
+        return { message: 'Success' };
+      }),
+      catchError(error => {
+        console.error('Error adding vaccine:', error);
+        return throwError(() => error);
+      })
+    );
   }
 
   getAllVaccines(): Observable<Vaccine[]> {
     return this.http.get<Vaccine[]>(`${environment.apiUrl}${this.endpoints.vaccineAll}`);
   }
 
-  registerVaccination(vaccinationPayload: any): Observable<any> {
-    return this.http.post(`${environment.apiUrl}/osobavakcina/add`, vaccinationPayload)
-      .pipe(
-        catchError(error => {
-          console.error('Error registering vaccination:', error);
-          return throwError(() => error);
-        })
-      );
+  registerVaccination(vaccination: Vaccination): Observable<any> {
+    // Format the date in YYYY-MM-DD format for Java's LocalDate
+    const formattedVaccination = {
+      ...vaccination,
+      // Ensure the ID values are numbers, not strings
+      osobaId: typeof vaccination.osobaId === 'string' ? parseInt(vaccination.osobaId, 10) : vaccination.osobaId,
+      vakcinaId: typeof vaccination.vakcinaId === 'string' ? parseInt(vaccination.vakcinaId, 10) : vaccination.vakcinaId
+    };
+    
+    console.log('Formatted vaccination payload:', formattedVaccination);
+    
+    return this.http.post(
+      `${environment.apiUrl}/osobavakcina/add`,
+      formattedVaccination,
+      this.httpOptions
+    ).pipe(
+      map(response => {
+        // Handle empty response or parse JSON if there is content
+        if (response && response !== '') {
+          try {
+            return JSON.parse(response as string);
+          } catch (e) {
+            return { message: 'Success' };
+          }
+        }
+        return { message: 'Success' };
+      }),
+      catchError(error => {
+        console.error('Error registering vaccination:', error);
+        return throwError(() => error);
+      })
+    );
   }
-  
-  
 }
