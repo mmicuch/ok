@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../services/api.service';
-import { environment } from '../../../../environments/environment';
 import { Vaccine } from '../../../models/interfaces';
 
 @Component({
@@ -30,19 +29,18 @@ import { Vaccine } from '../../../models/interfaces';
         <div class="form-group">
           <label for="typ">Typ vakcíny *</label>
           <select 
-  id="typ"
-  [(ngModel)]="vaccine.typ" 
-  name="typ" 
-  required
-  class="form-control"
-  #typ="ngModel">
-  <option value="">Vyberte typ vakcíny</option>
-  <option value="mRNA">mRNA</option>
-  <option value="vektorová">Vektorová</option>
-  <option value="proteínová">Proteínová</option>
-  <option value="iná">Iná</option>
-</select>
-
+            id="typ"
+            [(ngModel)]="vaccine.typ" 
+            name="typ" 
+            required
+            class="form-control"
+            #typ="ngModel">
+            <option value="">Vyberte typ vakcíny</option>
+            <option value="mRNA">mRNA</option>
+            <option value="vektorová">Vektorová</option>
+            <option value="proteínová">Proteínová</option>
+            <option value="iná">Iná</option>
+          </select>
           <div class="error" *ngIf="typ.invalid && (typ.dirty || typ.touched)">
             Typ je povinný
           </div>
@@ -62,12 +60,16 @@ import { Vaccine } from '../../../models/interfaces';
           </div>
         </div>
 
-        <button type="submit" [disabled]="!vaccineForm.form.valid" class="btn btn-primary">
+        <button type="submit" [disabled]="!vaccineForm.form.valid || loading" class="btn btn-primary">
           Pridať vakcínu
         </button>
 
         <div *ngIf="message" [class]="messageType">
           {{ message }}
+        </div>
+        
+        <div *ngIf="loading" class="loading-indicator">
+          Načítavam...
         </div>
       </form>
     </div>
@@ -105,6 +107,11 @@ import { Vaccine } from '../../../models/interfaces';
       cursor: not-allowed;
     }
     label { font-weight: bold; }
+    .loading-indicator {
+      text-align: center;
+      color: #007bff;
+      margin-top: 10px;
+    }
   `]
 })
 export class AddVaccineComponent {
@@ -116,23 +123,33 @@ export class AddVaccineComponent {
 
   message = '';
   messageType = '';
+  loading = false;
 
   constructor(private apiService: ApiService) {}
 
   onSubmit() {
+    this.loading = true;
+    this.message = '';
     console.log('Sending vaccine:', this.vaccine);
   
     this.apiService.addVaccine(this.vaccine).subscribe({
       next: (response) => {
         if (response.error) {
           console.error(`Error with endpoint ${response.endpoint}:`, response.error);
-          this.message = `Chyba pri pridávaní vakcíny: ${response.error.status}`;
+          this.message = `Chyba pri pridávaní vakcíny: ${response.error.status || 'Unknown error'}`;
           this.messageType = 'failure';
         } else {
           this.message = 'Vakcína bola úspešne pridaná';
           this.messageType = 'success';
           this.resetForm();
         }
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error adding vaccine:', error);
+        this.message = `Chyba pri pridávaní vakcíny: ${error.message || 'Unknown error'}`;
+        this.messageType = 'failure';
+        this.loading = false;
       }
     });
   }

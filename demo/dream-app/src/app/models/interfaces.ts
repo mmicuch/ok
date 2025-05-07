@@ -1,21 +1,17 @@
-// Predpokladám, že tento súbor by mal byť v src/app/models/interfaces.ts
+// Updated interfaces for the application
 
 export interface Person {
-  id: number;
+  id?: number;
   meno: string;
   priezvisko: string;
-  rodCislo?: string;
-  datumNarodenia?: string;
-  ulica?: string;
-  cislo?: string;
-  mesto?: string;
-  psc?: string;
+  datumNarodenia: string;
 }
 
 export interface Vaccine {
-  id: number;
+  id?: number;
   nazov: string;
   typ: string;
+  vyrobca: string; // Added missing field used in AddVaccineComponent
   pocetDavok?: number;
 }
 

@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../services/api.service';
-import { environment } from '../../../../environments/environment';
 import { Person } from '../../../models/interfaces';
 
 @Component({
@@ -125,13 +124,14 @@ export class AddPersonComponent {
 
   onSubmit() {
     this.loading = true;
+    this.message = '';
     console.log('Odosielam osobu:', this.person);
     
     this.apiService.addPerson(this.person).subscribe({
       next: (response) => {
         if (response.error) {
           console.error(`Error with endpoint ${response.endpoint}:`, response.error);
-          this.message = `Chyba pri pridávaní osoby: ${response.error.status}`;
+          this.message = `Chyba pri pridávaní osoby: ${response.error.status || 'Unknown error'}`;
           this.messageType = 'failure';
         } else {
           this.message = 'Osoba bola úspešne pridaná';
@@ -141,7 +141,8 @@ export class AddPersonComponent {
         this.loading = false;
       },
       error: (error) => {
-        this.message = 'Chyba pri pridávaní osoby';
+        console.error('Error adding person:', error);
+        this.message = `Chyba pri pridávaní osoby: ${error.message || 'Unknown error'}`;
         this.messageType = 'failure';
         this.loading = false;
       }

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, catchError, map, of } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Person, Vaccine, Vaccination } from '../models/interfaces';
 
@@ -17,18 +17,38 @@ export class ApiService {
     return this.http.get<Person[]>(`${this.apiUrl}/osoby/all`);
   }
   
+  // Add new person
+  addPerson(person: Person): Observable<any> {
+    return this.http.post<Person>(`${this.apiUrl}/osoby/add`, person)
+      .pipe(
+        map(response => ({ error: null, data: response })),
+        catchError(error => of({ error: error, endpoint: 'osoby/add' }))
+      );
+  }
+  
   // Get all vaccines
   getAllVaccines(): Observable<Vaccine[]> {
     return this.http.get<Vaccine[]>(`${this.apiUrl}/vakcina/all`);
   }
   
-  // Register vaccination - Fixed version
+  // Add new vaccine
+  addVaccine(vaccine: Vaccine): Observable<any> {
+    return this.http.post<Vaccine>(`${this.apiUrl}/vakcina/add`, vaccine)
+      .pipe(
+        map(response => ({ error: null, data: response })),
+        catchError(error => of({ error: error, endpoint: 'vakcina/add' }))
+      );
+  }
+  
+  // Register vaccination
   registerVaccination(vaccination: Vaccination): Observable<any> {
     // Create a clean payload ensuring it matches the backend expectations
     const payload = {
       osobaId: vaccination.osobaId,
       vakcinaId: vaccination.vakcinaId,
-      datumAplikacie: vaccination.datumAplikacie,
+      datumAplikacie: typeof vaccination.datumAplikacie === 'string' 
+        ? vaccination.datumAplikacie 
+        : this.formatDate(vaccination.datumAplikacie),
       poradieDavky: vaccination.poradieDavky
     };
     
@@ -37,6 +57,11 @@ export class ApiService {
     
     // Use the correct endpoint from the backend
     return this.http.post(`${this.apiUrl}/osobavakcina/add`, payload);
+  }
+  
+  // Search for vaccination records
+  searchVaccinationRecords(query: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/osobavakcina/search?query=${encodeURIComponent(query)}`);
   }
   
   // Helper method to format date as YYYY-MM-DD
