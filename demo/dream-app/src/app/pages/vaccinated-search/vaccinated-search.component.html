@@ -3,8 +3,21 @@
 <div class="search-container">
   <input [(ngModel)]="searchTerm" placeholder="Search by name or vaccine..." 
          (input)="onSearchInput($event)" />
-  <!-- Button kept for accessibility and mobile devices with virtual keyboards -->
-  <button (click)="search()">Search</button>
+  
+  <select [(ngModel)]="vaccineFilter" (change)="search()">
+    <option value="">All vaccines</option>
+    <option *ngFor="let vaccine of vaccines" [value]="vaccine.nazov">
+      {{ vaccine.nazov }} ({{ vaccine.vyrobca }})
+    </option>
+  </select>
+  
+  <select [(ngModel)]="sortBy" (change)="sortResults()">
+    <option value="name">Sort by Name (A-Z)</option>
+    <option value="nameDesc">Sort by Name (Z-A)</option>
+    <option value="dateAsc">Sort by Date (Oldest first)</option>
+    <option value="date">Sort by Date (Newest first)</option>
+    <option value="dose">Sort by Dose (Highest first)</option>
+  </select>
 </div>
 
 <div *ngIf="loading" class="loading">

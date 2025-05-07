@@ -15,13 +15,14 @@ import { Person } from '../../../models/interfaces';
         <div class="form-group">
           <label for="meno">Meno *</label>
           <input 
+            type="text"
             id="meno"
             [(ngModel)]="person.meno" 
             name="meno" 
             required
             class="form-control"
             #meno="ngModel">
-          <div class="error" *ngIf="meno.invalid && (meno.dirty || meno.touched)">
+          <div class="error" *ngIf="meno.invalid && (meno.dirty || meno.touched || formSubmitted)">
             Meno je povinné
           </div>
         </div>
@@ -29,13 +30,14 @@ import { Person } from '../../../models/interfaces';
         <div class="form-group">
           <label for="priezvisko">Priezvisko *</label>
           <input 
+            type="text"
             id="priezvisko"
             [(ngModel)]="person.priezvisko" 
             name="priezvisko" 
             required
             class="form-control"
             #priezvisko="ngModel">
-          <div class="error" *ngIf="priezvisko.invalid && (priezvisko.dirty || priezvisko.touched)">
+          <div class="error" *ngIf="priezvisko.invalid && (priezvisko.dirty || priezvisko.touched || formSubmitted)">
             Priezvisko je povinné
           </div>
         </div>
@@ -50,12 +52,12 @@ import { Person } from '../../../models/interfaces';
             required
             class="form-control"
             #datumNarodenia="ngModel">
-          <div class="error" *ngIf="datumNarodenia.invalid && (datumNarodenia.dirty || datumNarodenia.touched)">
+          <div class="error" *ngIf="datumNarodenia.invalid && (datumNarodenia.dirty || datumNarodenia.touched || formSubmitted)">
             Dátum narodenia je povinný
           </div>
         </div>
 
-        <button type="submit" [disabled]="!personForm.form.valid || loading" class="btn btn-primary">
+        <button type="submit" [disabled]="loading" class="btn btn-primary">
           Pridať osobu
         </button>
 
@@ -119,19 +121,29 @@ export class AddPersonComponent {
   message = '';
   messageType = '';
   loading = false;
+  formSubmitted = false;
 
   constructor(private apiService: ApiService) {}
 
   onSubmit() {
-    this.loading = true;
+    this.formSubmitted = true;
     this.message = '';
+    
+    // Validate form manually
+    if (!this.person.meno || !this.person.priezvisko || !this.person.datumNarodenia) {
+      this.message = 'Prosím, vyplňte všetky povinné polia';
+      this.messageType = 'failure';
+      return;
+    }
+    
+    this.loading = true;
     console.log('Odosielam osobu:', this.person);
     
     this.apiService.addPerson(this.person).subscribe({
       next: (response) => {
         if (response.error) {
           console.error(`Error with endpoint ${response.endpoint}:`, response.error);
-          this.message = `Chyba pri pridávaní osoby: ${response.error.status || 'Unknown error'}`;
+          this.message = `Chyba pri pridávaní osoby: ${response.error.status || response.error.message || 'Unknown error'}`;
           this.messageType = 'failure';
         } else {
           this.message = 'Osoba bola úspešne pridaná';
@@ -142,7 +154,7 @@ export class AddPersonComponent {
       },
       error: (error) => {
         console.error('Error adding person:', error);
-        this.message = `Chyba pri pridávaní osoby: ${error.message || 'Unknown error'}`;
+        this.message = `Chyba pri pridávaní osoby: ${error.message || error.status || 'Unknown error'}`;
         this.messageType = 'failure';
         this.loading = false;
       }
@@ -155,5 +167,6 @@ export class AddPersonComponent {
       priezvisko: '',
       datumNarodenia: new Date().toISOString().split('T')[0]
     };
+    this.formSubmitted = false;
   }
 }

@@ -6,6 +6,7 @@ import { environment } from '../../../environments/environment';
 import { VaccinationRecord } from '../../models/interfaces';
 import { Vaccine } from '../../models/interfaces';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { ApiService } from '../../services/api.service';
 
 @Component({
   selector: 'app-vaccinated-search',
@@ -29,28 +30,33 @@ export class VaccinatedSearchComponent implements OnInit, OnDestroy {
   private searchTerms = new Subject<string>();
   private destroy$ = new Subject<void>();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private apiService: ApiService) {}
 
   ngOnInit() {
     // Load all vaccines for the filter dropdown
-    this.http.get<Vaccine[]>(`${environment.apiUrl}/vakcina/all`)
-      .subscribe({
-        next: (data) => {
-          this.vaccines = data;
-        },
-        error: (err) => {
-          console.error('Error loading vaccines:', err);
-        }
-      });
+    this.apiService.getAllVaccines().subscribe({
+      next: (data) => {
+        this.vaccines = data;
+        console.log('Loaded vaccines:', data);
+      },
+      error: (err) => {
+        console.error('Error loading vaccines:', err);
+      }
+    });
       
     // Load all vaccination records to enable quick filtering
     this.http.get<VaccinationRecord[]>(`${environment.apiUrl}/osobavakcina`)
       .subscribe({
         next: (data) => {
           this.allRecords = data;
+          console.log('Loaded all vaccination records:', data);
+          // Initialize results with all records
+          this.results = [...this.allRecords];
+          this.sortResults();
         },
         error: (err) => {
           console.error('Error loading vaccination records:', err);
+          this.error = `Error loading data: ${err.message}`;
         }
       });
       
@@ -70,7 +76,7 @@ export class VaccinatedSearchComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // Fix this method to handle input changes properly
+  // Handle input changes properly
   onSearchInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     this.searchTerms.next(input.value);
@@ -80,46 +86,37 @@ export class VaccinatedSearchComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = '';
     
-    if (!this.searchTerm.trim() && !this.vaccineFilter) {
-      // If no search term and no filter, show all records
-      this.results = [...this.allRecords];
+    if (!this.searchTerm.trim()) {
+      // If no search term, show all records or apply just the vaccine filter
+      if (this.vaccineFilter) {
+        this.results = this.allRecords.filter(record => 
+          record.vakcinaNazov.toLowerCase() === this.vaccineFilter.toLowerCase()
+        );
+      } else {
+        this.results = [...this.allRecords];
+      }
       this.sortResults();
       this.loading = false;
       return;
     }
     
-    if (this.searchTerm.trim() === '' && this.vaccineFilter) {
-      // If only vaccine filter is specified, filter locally
-      this.results = this.allRecords.filter(record => 
+    // Filter locally based on the search term
+    const lowercaseSearchTerm = this.searchTerm.toLowerCase();
+    this.results = this.allRecords.filter(record => {
+      const nameMatch = `${record.osobaMeno} ${record.osobaPriezvisko}`.toLowerCase().includes(lowercaseSearchTerm);
+      const vaccineMatch = record.vakcinaNazov.toLowerCase().includes(lowercaseSearchTerm);
+      return nameMatch || vaccineMatch;
+    });
+    
+    // Apply vaccine filter if needed
+    if (this.vaccineFilter) {
+      this.results = this.results.filter(record => 
         record.vakcinaNazov.toLowerCase() === this.vaccineFilter.toLowerCase()
       );
-      this.sortResults();
-      this.loading = false;
-      return;
     }
     
-    // Use the search endpoint with the query
-    this.http.get<VaccinationRecord[]>(`${environment.apiUrl}/osobavakcina/search?query=${encodeURIComponent(this.searchTerm)}`)
-      .subscribe({
-        next: (data) => {
-          // Apply vaccine filter if needed
-          if (this.vaccineFilter) {
-            this.results = data.filter(record => 
-              record.vakcinaNazov.toLowerCase() === this.vaccineFilter.toLowerCase()
-            );
-          } else {
-            this.results = data;
-          }
-          
-          this.sortResults();
-          this.loading = false;
-        },
-        error: (err) => {
-          this.error = `Error searching: ${err.message}`;
-          this.loading = false;
-          console.error('Error while searching:', err);
-        }
-      });
+    this.sortResults();
+    this.loading = false;
   }
   
   sortResults() {

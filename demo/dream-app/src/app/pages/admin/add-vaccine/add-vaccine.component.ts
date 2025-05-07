@@ -15,13 +15,14 @@ import { Vaccine } from '../../../models/interfaces';
         <div class="form-group">
           <label for="nazov">Názov vakcíny *</label>
           <input 
+            type="text"
             id="nazov"
             [(ngModel)]="vaccine.nazov" 
             name="nazov" 
             required
             class="form-control"
             #nazov="ngModel">
-          <div class="error" *ngIf="nazov.invalid && (nazov.dirty || nazov.touched)">
+          <div class="error" *ngIf="nazov.invalid && (nazov.dirty || nazov.touched || formSubmitted)">
             Názov je povinný
           </div>
         </div>
@@ -41,7 +42,7 @@ import { Vaccine } from '../../../models/interfaces';
             <option value="proteínová">Proteínová</option>
             <option value="iná">Iná</option>
           </select>
-          <div class="error" *ngIf="typ.invalid && (typ.dirty || typ.touched)">
+          <div class="error" *ngIf="typ.invalid && (typ.dirty || typ.touched || formSubmitted)">
             Typ je povinný
           </div>
         </div>
@@ -49,18 +50,19 @@ import { Vaccine } from '../../../models/interfaces';
         <div class="form-group">
           <label for="vyrobca">Výrobca *</label>
           <input 
+            type="text"
             id="vyrobca"
             [(ngModel)]="vaccine.vyrobca" 
             name="vyrobca" 
             required
             class="form-control"
             #vyrobca="ngModel">
-          <div class="error" *ngIf="vyrobca.invalid && (vyrobca.dirty || vyrobca.touched)">
+          <div class="error" *ngIf="vyrobca.invalid && (vyrobca.dirty || vyrobca.touched || formSubmitted)">
             Výrobca je povinný
           </div>
         </div>
 
-        <button type="submit" [disabled]="!vaccineForm.form.valid || loading" class="btn btn-primary">
+        <button type="submit" [disabled]="loading" class="btn btn-primary">
           Pridať vakcínu
         </button>
 
@@ -124,19 +126,29 @@ export class AddVaccineComponent {
   message = '';
   messageType = '';
   loading = false;
+  formSubmitted = false;
 
   constructor(private apiService: ApiService) {}
 
   onSubmit() {
-    this.loading = true;
+    this.formSubmitted = true;
     this.message = '';
+    
+    // Validate form manually
+    if (!this.vaccine.nazov || !this.vaccine.typ || !this.vaccine.vyrobca) {
+      this.message = 'Prosím, vyplňte všetky povinné polia';
+      this.messageType = 'failure';
+      return;
+    }
+    
+    this.loading = true;
     console.log('Sending vaccine:', this.vaccine);
   
     this.apiService.addVaccine(this.vaccine).subscribe({
       next: (response) => {
         if (response.error) {
           console.error(`Error with endpoint ${response.endpoint}:`, response.error);
-          this.message = `Chyba pri pridávaní vakcíny: ${response.error.status || 'Unknown error'}`;
+          this.message = `Chyba pri pridávaní vakcíny: ${response.error.status || response.error.message || 'Unknown error'}`;
           this.messageType = 'failure';
         } else {
           this.message = 'Vakcína bola úspešne pridaná';
@@ -147,7 +159,7 @@ export class AddVaccineComponent {
       },
       error: (error) => {
         console.error('Error adding vaccine:', error);
-        this.message = `Chyba pri pridávaní vakcíny: ${error.message || 'Unknown error'}`;
+        this.message = `Chyba pri pridávaní vakcíny: ${error.message || error.status || 'Unknown error'}`;
         this.messageType = 'failure';
         this.loading = false;
       }
@@ -160,5 +172,6 @@ export class AddVaccineComponent {
       typ: '',
       vyrobca: ''
     };
+    this.formSubmitted = false;
   }
 }
