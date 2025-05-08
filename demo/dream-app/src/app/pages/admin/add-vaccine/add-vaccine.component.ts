@@ -10,10 +10,10 @@ import { Vaccine } from '../../../models/interfaces';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="form-container">
-      <h2>Pridať novú vakcínu</h2>
+      <h2>Add New Vaccine</h2>
       <form (ngSubmit)="onSubmit()" #vaccineForm="ngForm">
         <div class="form-group">
-          <label for="nazov">Názov vakcíny *</label>
+          <label for="nazov">Vaccine Name *</label>
           <input 
             type="text"
             id="nazov"
@@ -23,12 +23,12 @@ import { Vaccine } from '../../../models/interfaces';
             class="form-control"
             #nazov="ngModel">
           <div class="error" *ngIf="nazov.invalid && (nazov.dirty || nazov.touched || formSubmitted)">
-            Názov je povinný
+            Vaccine name is required
           </div>
         </div>
 
         <div class="form-group">
-          <label for="typ">Typ vakcíny *</label>
+          <label for="typ">Vaccine Type *</label>
           <select 
             id="typ"
             [(ngModel)]="vaccine.typ" 
@@ -36,19 +36,19 @@ import { Vaccine } from '../../../models/interfaces';
             required
             class="form-control"
             #typ="ngModel">
-            <option value="">Vyberte typ vakcíny</option>
+            <option value="">Select vaccine type</option>
             <option value="mRNA">mRNA</option>
-            <option value="vektorová">Vektorová</option>
-            <option value="proteínová">Proteínová</option>
-            <option value="iná">Iná</option>
+            <option value="vektorová">Vector</option>
+            <option value="proteínová">Protein</option>
+            <option value="iná">Other</option>
           </select>
           <div class="error" *ngIf="typ.invalid && (typ.dirty || typ.touched || formSubmitted)">
-            Typ je povinný
+            Vaccine type is required
           </div>
         </div>
 
         <div class="form-group">
-          <label for="vyrobca">Výrobca *</label>
+          <label for="vyrobca">Manufacturer *</label>
           <input 
             type="text"
             id="vyrobca"
@@ -58,12 +58,12 @@ import { Vaccine } from '../../../models/interfaces';
             class="form-control"
             #vyrobca="ngModel">
           <div class="error" *ngIf="vyrobca.invalid && (vyrobca.dirty || vyrobca.touched || formSubmitted)">
-            Výrobca je povinný
+            Manufacturer is required
           </div>
         </div>
 
-        <button type="submit" [disabled]="loading" class="btn btn-primary">
-          Pridať vakcínu
+        <button type="submit" [disabled]="loading" class="btn-primary">
+          Add Vaccine
         </button>
 
         <div *ngIf="message" [class]="messageType">
@@ -71,7 +71,8 @@ import { Vaccine } from '../../../models/interfaces';
         </div>
         
         <div *ngIf="loading" class="loading-indicator">
-          Načítavam...
+          <div class="spinner"></div>
+          <span>Processing...</span>
         </div>
       </form>
     </div>
@@ -82,37 +83,105 @@ import { Vaccine } from '../../../models/interfaces';
       margin: 20px auto; 
       padding: 20px; 
       border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      background-color: #f8f8f8;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
-    .form-group { margin-bottom: 15px; }
+    h2 {
+      color: #212121;
+      margin-bottom: 20px;
+      font-weight: 600;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-group { 
+      margin-bottom: 20px;
+    }
     .form-control { 
       width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
+      padding: 12px;
+      border: 1px solid #e0e0e0;
       border-radius: 4px;
       margin-top: 5px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      background-color: #fff;
     }
-    .error { color: red; font-size: 0.875em; margin-top: 5px; }
-    .success { color: green; margin-top: 10px; }
-    .failure { color: red; margin-top: 10px; }
-    button { 
+    .form-control:focus {
+      border-color: #212121;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(33, 33, 33, 0.1);
+    }
+    select.form-control {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6' fill='none'%3E%3Cpath fill='%23666' d='M6 6 0 0h12L6 6Z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+    .error { 
+      color: #d32f2f; 
+      font-size: 0.875em; 
+      margin-top: 5px; 
+    }
+    .success { 
+      color: #388e3c; 
+      margin-top: 10px; 
+      padding: 8px;
+      background-color: #e8f5e9;
+      border-radius: 4px;
+      text-align: center;
+    }
+    .failure { 
+      color: #d32f2f; 
+      margin-top: 10px; 
+      padding: 8px;
+      background-color: #ffebee;
+      border-radius: 4px;
+      text-align: center;
+    }
+    .btn-primary { 
       width: 100%;
-      padding: 10px;
-      background: #007bff;
+      padding: 12px;
+      background: #212121;
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: background-color 0.3s;
     }
-    button:disabled { 
-      background: #cccccc;
+    .btn-primary:hover { 
+      background: #424242;
+    }
+    .btn-primary:disabled { 
+      background: #bdbdbd;
       cursor: not-allowed;
     }
-    label { font-weight: bold; }
+    label { 
+      font-weight: 500;
+      color: #424242;
+      display: block;
+      margin-bottom: 6px;
+    }
     .loading-indicator {
-      text-align: center;
-      color: #007bff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
       margin-top: 10px;
+    }
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(0, 0, 0, 0.1);
+      border-top-color: #212121;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   `]
 })
@@ -136,7 +205,7 @@ export class AddVaccineComponent {
     
     // Validate form manually
     if (!this.vaccine.nazov || !this.vaccine.typ || !this.vaccine.vyrobca) {
-      this.message = 'Prosím, vyplňte všetky povinné polia';
+      this.message = 'Please fill in all required fields';
       this.messageType = 'failure';
       return;
     }
@@ -148,10 +217,10 @@ export class AddVaccineComponent {
       next: (response) => {
         if (response.error) {
           console.error(`Error with endpoint ${response.endpoint}:`, response.error);
-          this.message = `Chyba pri pridávaní vakcíny: ${response.error.status || response.error.message || 'Unknown error'}`;
+          this.message = `Error adding vaccine: ${response.error.status || response.error.message || 'Unknown error'}`;
           this.messageType = 'failure';
         } else {
-          this.message = 'Vakcína bola úspešne pridaná';
+          this.message = 'Vaccine added successfully';
           this.messageType = 'success';
           this.resetForm();
         }
@@ -159,7 +228,7 @@ export class AddVaccineComponent {
       },
       error: (error) => {
         console.error('Error adding vaccine:', error);
-        this.message = `Chyba pri pridávaní vakcíny: ${error.message || error.status || 'Unknown error'}`;
+        this.message = `Error adding vaccine: ${error.message || error.status || 'Unknown error'}`;
         this.messageType = 'failure';
         this.loading = false;
       }
