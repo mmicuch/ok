@@ -65,8 +65,7 @@ public interface OsobaVakcinaRepository extends JpaRepository<OsobaVakcina, Long
      */
     @Query("SELECT ov FROM OsobaVakcina ov WHERE ov.osoba.id = :osobaId AND ov.vakcina.id = :vakcinaId " +
            "ORDER BY ov.poradieDavky DESC LIMIT 1")
-    Optional<OsobaVakcina> findPoslednu DavkuPreOsobuAVakcinu(@Param("osobaId") Long osobaId, @Param("vakcinaId") Long vakcinaId);
-    
+    Optional<OsobaVakcina> findTopByOsobaIdAndVakcinaIdOrderByPoradieDavkyDesc(Long osobaId, Long vakcinaId);    
     /**
      * Spočíta počet dokončených vakcinácií pre osobu
      */
