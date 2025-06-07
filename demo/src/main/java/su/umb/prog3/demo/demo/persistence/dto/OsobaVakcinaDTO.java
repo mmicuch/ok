@@ -1,109 +1,151 @@
 package su.umb.prog3.demo.demo.persistence.dto;
 
-import su.umb.prog3.demo.demo.persistence.entity.OsobaVakcina;
-
 import java.time.LocalDate;
 
 public class OsobaVakcinaDTO {
     private Long id;
     private Long osobaId;
     private Long vakcinaId;
-    private LocalDate datumAplikacie;
-    private int poradieDavky;
+    private LocalDate datumVakciny;
+    private String nazovVakciny;
+    private String menoOsoby;
+    private String priezviskoOsoby;
     
-    // Add these fields to match the frontend expectations
-    private String osobaMeno;
-    private String osobaPriezvisko;
-    private String vakcinaNazov;
-    private String vakcinaTyp;
-
-    public OsobaVakcinaDTO() {
-        // default constructor
-    }
-
-    public OsobaVakcinaDTO(OsobaVakcina entity) {
-        this.id = entity.getId();
-        this.osobaId = entity.getOsoba().getId();
-        this.vakcinaId = entity.getVakcina().getId();
-        this.datumAplikacie = entity.getDatumAplikacie();
-        this.poradieDavky = entity.getPoradieDavky();
-        
-        // Set additional fields
-        this.osobaMeno = entity.getOsoba().getMeno();
-        this.osobaPriezvisko = entity.getOsoba().getPriezvisko();
-        this.vakcinaNazov = entity.getVakcina().getNazov();
-        this.vakcinaTyp = entity.getVakcina().getTyp().toString();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
+    // Nové polia pre viacnásobné dávky
+    private Integer pocetDavok;
+    private Integer aktualnaDavka;
+    private Integer intervalMedziDavkami; // v dňoch
+    private LocalDate datumDalsejDavky;
+    private Boolean jeKompletna; // či je vakcinácia dokončená
+    
+    // Konštruktory
+    public OsobaVakcinaDTO() {}
+    
+    public OsobaVakcinaDTO(Long id, Long osobaId, Long vakcinaId, LocalDate datumVakciny, 
+                          String nazovVakciny, String menoOsoby, String priezviskoOsoby) {
         this.id = id;
-    }
-
-    public Long getOsobaId() {
-        return osobaId;
-    }
-
-    public void setOsobaId(Long osobaId) {
         this.osobaId = osobaId;
-    }
-
-    public Long getVakcinaId() {
-        return vakcinaId;
-    }
-
-    public void setVakcinaId(Long vakcinaId) {
         this.vakcinaId = vakcinaId;
+        this.datumVakciny = datumVakciny;
+        this.nazovVakciny = nazovVakciny;
+        this.menoOsoby = menoOsoby;
+        this.priezviskoOsoby = priezviskoOsoby;
+        this.aktualnaDavka = 1;
+        this.jeKompletna = false;
     }
-
-    public LocalDate getDatumAplikacie() {
-        return datumAplikacie;
+    
+    // Rozšírený konštruktor pre viacnásobné dávky
+    public OsobaVakcinaDTO(Long id, Long osobaId, Long vakcinaId, LocalDate datumVakciny, 
+                          String nazovVakciny, String menoOsoby, String priezviskoOsoby,
+                          Integer pocetDavok, Integer aktualnaDavka, Integer intervalMedziDavkami) {
+        this(id, osobaId, vakcinaId, datumVakciny, nazovVakciny, menoOsoby, priezviskoOsoby);
+        this.pocetDavok = pocetDavok;
+        this.aktualnaDavka = aktualnaDavka;
+        this.intervalMedziDavkami = intervalMedziDavkami;
+        this.jeKompletna = aktualnaDavka >= pocetDavok;
+        
+        // Vypočítaj dátum ďalšej dávky ak nie je kompletná
+        if (!this.jeKompletna && intervalMedziDavkami != null) {
+            this.datumDalsejDavky = datumVakciny.plusDays(intervalMedziDavkami);
+        }
     }
-
-    public void setDatumAplikacie(LocalDate datumAplikacie) {
-        this.datumAplikacie = datumAplikacie;
+    
+    // Gettery a settery
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public Long getOsobaId() { return osobaId; }
+    public void setOsobaId(Long osobaId) { this.osobaId = osobaId; }
+    
+    public Long getVakcinaId() { return vakcinaId; }
+    public void setVakcinaId(Long vakcinaId) { this.vakcinaId = vakcinaId; }
+    
+    public LocalDate getDatumVakciny() { return datumVakciny; }
+    public void setDatumVakciny(LocalDate datumVakciny) { this.datumVakciny = datumVakciny; }
+    
+    public String getNazovVakciny() { return nazovVakciny; }
+    public void setNazovVakciny(String nazovVakciny) { this.nazovVakciny = nazovVakciny; }
+    
+    public String getMenoOsoby() { return menoOsoby; }
+    public void setMenoOsoby(String menoOsoby) { this.menoOsoby = menoOsoby; }
+    
+    public String getPriezviskoOsoby() { return priezviskoOsoby; }
+    public void setPriezviskoOsoby(String priezviskoOsoby) { this.priezviskoOsoby = priezviskoOsoby; }
+    
+    // Nové gettery a settery
+    public Integer getPocetDavok() { return pocetDavok; }
+    public void setPocetDavok(Integer pocetDavok) { 
+        this.pocetDavok = pocetDavok;
+        updateKompletnost();
     }
-
-    public int getPoradieDavky() {
-        return poradieDavky;
+    
+    public Integer getAktualnaDavka() { return aktualnaDavka; }
+    public void setAktualnaDavka(Integer aktualnaDavka) { 
+        this.aktualnaDavka = aktualnaDavka;
+        updateKompletnost();
     }
-
-    public void setPoradieDavky(int poradieDavky) {
-        this.poradieDavky = poradieDavky;
+    
+    public Integer getIntervalMedziDavkami() { return intervalMedziDavkami; }
+    public void setIntervalMedziDavkami(Integer intervalMedziDavkami) { 
+        this.intervalMedziDavkami = intervalMedziDavkami;
+        updateDatumDalsejDavky();
     }
-
-    public String getOsobaMeno() {
-        return osobaMeno;
+    
+    public LocalDate getDatumDalsejDavky() { return datumDalsejDavky; }
+    public void setDatumDalsejDavky(LocalDate datumDalsejDavky) { this.datumDalsejDavky = datumDalsejDavky; }
+    
+    public Boolean getJeKompletna() { return jeKompletna; }
+    public void setJeKompletna(Boolean jeKompletna) { this.jeKompletna = jeKompletna; }
+    
+    // Pomocné metódy
+    private void updateKompletnost() {
+        if (pocetDavok != null && aktualnaDavka != null) {
+            this.jeKompletna = aktualnaDavka >= pocetDavok;
+        }
     }
-
-    public void setOsobaMeno(String osobaMeno) {
-        this.osobaMeno = osobaMeno;
+    
+    private void updateDatumDalsejDavky() {
+        if (!Boolean.TRUE.equals(jeKompletna) && datumVakciny != null && intervalMedziDavkami != null) {
+            this.datumDalsejDavky = datumVakciny.plusDays(intervalMedziDavkami);
+        }
     }
-
-    public String getOsobaPriezvisko() {
-        return osobaPriezvisko;
+    
+    // Metóda na získanie plného mena
+    public String getPlneMeno() {
+        return menoOsoby + " " + priezviskoOsoby;
     }
-
-    public void setOsobaPriezvisko(String osobaPriezvisko) {
-        this.osobaPriezvisko = osobaPriezvisko;
+    
+    // Metóda na získanie progressu vakcinácie ako string
+    public String getProgressVakciny() {
+        if (pocetDavok == null || aktualnaDavka == null) {
+            return "1/1";
+        }
+        return aktualnaDavka + "/" + pocetDavok;
     }
-
-    public String getVakcinaNazov() {
-        return vakcinaNazov;
+    
+    // Metóda na získanie zostávajúcich dní do ďalšej dávky
+    public Long getZostavajuceDniDoDalsejDavky() {
+        if (datumDalsejDavky == null || Boolean.TRUE.equals(jeKompletna)) {
+            return null;
+        }
+        return java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(), datumDalsejDavky);
     }
-
-    public void setVakcinaNazov(String vakcinaNazov) {
-        this.vakcinaNazov = vakcinaNazov;
-    }
-
-    public String getVakcinaTyp() {
-        return vakcinaTyp;
-    }
-
-    public void setVakcinaTyp(String vakcinaTyp) {
-        this.vakcinaTyp = vakcinaTyp;
+    
+    @Override
+    public String toString() {
+        return "OsobaVakcinaDTO{" +
+                "id=" + id +
+                ", osobaId=" + osobaId +
+                ", vakcinaId=" + vakcinaId +
+                ", datumVakciny=" + datumVakciny +
+                ", nazovVakciny='" + nazovVakciny + '\'' +
+                ", menoOsoby='" + menoOsoby + '\'' +
+                ", priezviskoOsoby='" + priezviskoOsoby + '\'' +
+                ", pocetDavok=" + pocetDavok +
+                ", aktualnaDavka=" + aktualnaDavka +
+                ", intervalMedziDavkami=" + intervalMedziDavkami +
+                ", datumDalsejDavky=" + datumDalsejDavky +
+                ", jeKompletna=" + jeKompletna +
+                '}';
     }
 }
