@@ -51,8 +51,8 @@ public class OsobaVakcinaService {
         OsobaVakcina ov = new OsobaVakcina();
         ov.setOsoba(osoba);
         ov.setVakcina(vakcina);
-        ov.setDatumAplikacie(dto.getDatumAplikacie());
-        ov.setPoradieDavky(dto.getPoradieDavky());
+        ov.setDatumAplikacie(dto.getDatumVakciny());  // Changed from getDatumAplikacie
+        ov.setPoradieDavky(dto.getAktualnaDavka());   // Changed from getPoradieDavky
 
         return osobaVakcinaRepository.save(ov);
     }
