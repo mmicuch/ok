@@ -25,12 +25,21 @@ export interface Vaccination {
 
 export interface VaccinationRecord {
   id: number;
-  osobaId: number;
-  vakcinaId: number;
-  datumAplikacie: string;
-  poradieDavky: number;
+  osobaId?: number;
+  vakcinaId?: number;
+  menoOsoby: string;
+  priezviskoOsoby: string;
+  nazovVakciny: string;
+  datumVakciny: string;
+  aktualnaDavka: number;
+  potrebnaDavka: number;
+  emailOsoby?: string;
+  
+  // Pridané pre backward compatibility s template
   osobaMeno: string;
   osobaPriezvisko: string;
   vakcinaNazov: string;
-  vakcinaTyp: string;
+  vakcinaTyp?: string;
+  datumAplikacie: string;
+  poradieDavky: number;
 }

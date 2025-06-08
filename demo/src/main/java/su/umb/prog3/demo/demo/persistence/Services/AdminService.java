@@ -6,20 +6,22 @@ import org.springframework.stereotype.Service;
 import su.umb.prog3.demo.demo.persistence.dto.AuthResponseDTO;
 import su.umb.prog3.demo.demo.persistence.dto.LoginRequestDTO;
 import su.umb.prog3.demo.demo.persistence.entity.AdminEntity;
+import su.umb.prog3.demo.demo.persistence.entity.OsobaEntity;
 import su.umb.prog3.demo.demo.persistence.repos.AdminRepository;
+import su.umb.prog3.demo.demo.persistence.repos.OsobaRepository;
 import su.umb.prog3.demo.demo.security.JwtService;
-
-import java.util.ArrayList;
 
 @Service
 public class AdminService {
 
     private final AdminRepository adminRepository;
+    private final OsobaRepository osobaRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
-    public AdminService(AdminRepository adminRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public AdminService(AdminRepository adminRepository, OsobaRepository osobaRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.adminRepository = adminRepository;
+        this.osobaRepository = osobaRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
     }
@@ -35,28 +37,23 @@ public class AdminService {
         }
 
         // Vytvoríme a vrátime JWT token
-        var userDetails = org.springframework.security.core.userdetails.User.builder()
-                .username(admin.getUsername())
-                .password(admin.getPassword())
-                .authorities(new ArrayList<>())
-                .build();
-
-        String token = jwtService.generateToken(userDetails);
-
+        String token = jwtService.generateToken(admin.getUsername());
         return new AuthResponseDTO(token, admin.getUsername());
     }
 
     // Metóda pre vytvorenie admin používateľa (ak neexistuje)
     public AdminEntity createAdminIfNotExists(String username, String rawPassword) {
-        boolean adminExists = adminRepository.findByUsername(username).isPresent();
+        return adminRepository.findByUsername(username)
+                .orElseGet(() -> {
+                    AdminEntity admin = new AdminEntity();
+                    admin.setUsername(username);
+                    admin.setPassword(passwordEncoder.encode(rawPassword));
+                    return adminRepository.save(admin);
+                });
+    }
 
-        if (!adminExists) {
-            AdminEntity admin = new AdminEntity();
-            admin.setUsername(username);
-            admin.setPassword(passwordEncoder.encode(rawPassword));
-            return adminRepository.save(admin);
-        }
-
-        return adminRepository.findByUsername(username).get();
+    // Pridajte túto metódu
+    public OsobaEntity createOsoba(OsobaEntity osoba) {
+        return osobaRepository.save(osoba);
     }
 }

@@ -31,17 +31,16 @@ export class VaccinatedListComponent implements OnInit {
     this.loading = true;
     this.error = '';
     
-    // Use the correct API endpoint
     this.http.get<VaccinationRecord[]>(`${environment.apiUrl}/osobavakcina`)
       .subscribe({
-        next: (data) => {
+        next: (data: VaccinationRecord[]) => {
           this.records = data;
           this.filteredRecords = [...this.records]; // Initialize filtered records
           this.applySort(); // Apply default sorting
           this.loading = false;
           console.log('Loaded vaccination records:', data);
         },
-        error: (err) => {
+        error: (err: any) => {
           this.error = `Error loading data: ${err.message}`;
           this.loading = false;
           console.error('Error loading vaccination records:', err);
@@ -69,8 +68,7 @@ export class VaccinatedListComponent implements OnInit {
       this.filteredRecords = [...this.records];
     } else {
       this.filteredRecords = this.records.filter(record => 
-        record.vakcinaNazov.toLowerCase().includes(this.vaccineFilter.toLowerCase()) ||
-        record.vakcinaTyp.toLowerCase().includes(this.vaccineFilter.toLowerCase())
+        record.nazovVakciny.toLowerCase().includes(this.vaccineFilter.toLowerCase())
       );
     }
     this.applySort();
@@ -90,13 +88,13 @@ export class VaccinatedListComponent implements OnInit {
     this.filteredRecords.sort((a, b) => {
       switch(this.sortBy) {
         case 'name':
-          return direction * (`${a.osobaPriezvisko} ${a.osobaMeno}`).localeCompare(`${b.osobaPriezvisko} ${b.osobaMeno}`);
+          return direction * (`${a.priezviskoOsoby} ${a.menoOsoby}`).localeCompare(`${b.priezviskoOsoby} ${b.menoOsoby}`);
         case 'vaccine':
-          return direction * a.vakcinaNazov.localeCompare(b.vakcinaNazov);
+          return direction * a.nazovVakciny.localeCompare(b.nazovVakciny);
         case 'date':
-          return direction * (new Date(a.datumAplikacie).getTime() - new Date(b.datumAplikacie).getTime());
+          return direction * (new Date(a.datumVakciny).getTime() - new Date(b.datumVakciny).getTime());
         case 'dose':
-          return direction * (a.poradieDavky - b.poradieDavky);
+          return direction * (a.aktualnaDavka - b.aktualnaDavka);
         default:
           return 0;
       }

@@ -37,10 +37,10 @@
     </thead>
     <tbody>
       <tr *ngFor="let r of filteredRecords">
-        <td>{{ r.osobaMeno }} {{ r.osobaPriezvisko }}</td>
-        <td>{{ r.vakcinaNazov }} ({{ r.vakcinaTyp }})</td>
-        <td>{{ r.datumAplikacie | date:'dd.MM.yyyy' }}</td>
-        <td>{{ r.poradieDavky }}</td>
+        <td>{{ r.menoOsoby }} {{ r.priezviskoOsoby }}</td>
+        <td>{{ r.nazovVakciny }}</td>
+        <td>{{ r.datumVakciny | date:'dd.MM.yyyy' }}</td>
+        <td>{{ r.aktualnaDavka }}</td>
       </tr>
     </tbody>
   </table>

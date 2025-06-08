@@ -45,20 +45,7 @@ export class VaccinatedSearchComponent implements OnInit, OnDestroy {
     });
       
     // Load all vaccination records to enable quick filtering
-    this.http.get<VaccinationRecord[]>(`${environment.apiUrl}/osobavakcina`)
-      .subscribe({
-        next: (data) => {
-          this.allRecords = data;
-          console.log('Loaded all vaccination records:', data);
-          // Initialize results with all records
-          this.results = [...this.allRecords];
-          this.sortResults();
-        },
-        error: (err) => {
-          console.error('Error loading vaccination records:', err);
-          this.error = `Error loading data: ${err.message}`;
-        }
-      });
+    this.loadRecords();
       
     // Set up reactive search
     this.searchTerms.pipe(
@@ -82,6 +69,35 @@ export class VaccinatedSearchComponent implements OnInit, OnDestroy {
     this.searchTerms.next(input.value);
   }
 
+  loadRecords() {
+    this.loading = true;
+    this.error = '';
+    
+    this.apiService.getAllVaccinationRecords()
+      .subscribe({
+        next: (data: any[]) => {
+          this.allRecords = data.map(record => ({
+            ...record,
+            // Mapovanie pre backward compatibility
+            osobaMeno: record.menoOsoby,
+            osobaPriezvisko: record.priezviskoOsoby,
+            vakcinaNazov: record.nazovVakciny,
+            vakcinaTyp: record.vakcinaTyp || 'N/A',
+            datumAplikacie: record.datumVakciny,
+            poradieDavky: record.aktualnaDavka
+          }));
+          this.results = [...this.allRecords];
+          this.loading = false;
+          console.log('Loaded vaccination records:', this.allRecords);
+        },
+        error: (err: any) => {
+          this.error = `Error loading data: ${err.message}`;
+          this.loading = false;
+          console.error('Error loading vaccination records:', err);
+        }
+      });
+  }
+
   search() {
     this.loading = true;
     this.error = '';
@@ -90,7 +106,7 @@ export class VaccinatedSearchComponent implements OnInit, OnDestroy {
       // If no search term, show all records or apply just the vaccine filter
       if (this.vaccineFilter) {
         this.results = this.allRecords.filter(record => 
-          record.vakcinaNazov.toLowerCase() === this.vaccineFilter.toLowerCase()
+          record.nazovVakciny.toLowerCase() === this.vaccineFilter.toLowerCase()
         );
       } else {
         this.results = [...this.allRecords];
@@ -103,15 +119,15 @@ export class VaccinatedSearchComponent implements OnInit, OnDestroy {
     // Filter locally based on the search term
     const lowercaseSearchTerm = this.searchTerm.toLowerCase();
     this.results = this.allRecords.filter(record => {
-      const nameMatch = `${record.osobaMeno} ${record.osobaPriezvisko}`.toLowerCase().includes(lowercaseSearchTerm);
-      const vaccineMatch = record.vakcinaNazov.toLowerCase().includes(lowercaseSearchTerm);
+      const nameMatch = `${record.menoOsoby} ${record.priezviskoOsoby}`.toLowerCase().includes(lowercaseSearchTerm);
+      const vaccineMatch = record.nazovVakciny.toLowerCase().includes(lowercaseSearchTerm);
       return nameMatch || vaccineMatch;
     });
     
     // Apply vaccine filter if needed
     if (this.vaccineFilter) {
       this.results = this.results.filter(record => 
-        record.vakcinaNazov.toLowerCase() === this.vaccineFilter.toLowerCase()
+        record.nazovVakciny.toLowerCase() === this.vaccineFilter.toLowerCase()
       );
     }
     
@@ -123,27 +139,32 @@ export class VaccinatedSearchComponent implements OnInit, OnDestroy {
     switch(this.sortBy) {
       case 'name':
         this.results.sort((a, b) => 
-          (a.osobaPriezvisko + a.osobaMeno).localeCompare(b.osobaPriezvisko + b.osobaMeno)
+          (a.priezviskoOsoby + a.menoOsoby).localeCompare(b.priezviskoOsoby + b.menoOsoby)
         );
         break;
       case 'nameDesc':
         this.results.sort((a, b) => 
-          (b.osobaPriezvisko + b.osobaMeno).localeCompare(a.osobaPriezvisko + a.osobaMeno)
+          (b.priezviskoOsoby + b.menoOsoby).localeCompare(a.priezviskoOsoby + a.menoOsoby)
         );
         break;
       case 'date':
         this.results.sort((a, b) => 
-          new Date(b.datumAplikacie).getTime() - new Date(a.datumAplikacie).getTime()
+          new Date(b.datumVakciny).getTime() - new Date(a.datumVakciny).getTime()
         );
         break;
       case 'dateAsc':
         this.results.sort((a, b) => 
-          new Date(a.datumAplikacie).getTime() - new Date(b.datumAplikacie).getTime()
+          new Date(a.datumVakciny).getTime() - new Date(b.datumVakciny).getTime()
         );
         break;
       case 'dose':
-        this.results.sort((a, b) => b.poradieDavky - a.poradieDavky);
+        this.results.sort((a, b) => b.aktualnaDavka - a.aktualnaDavka);
         break;
     }
+  }
+
+  getUniqueVaccines(): string[] {
+    const vaccines = this.allRecords.map(record => record.nazovVakciny);
+    return [...new Set(vaccines)].sort();
   }
 }

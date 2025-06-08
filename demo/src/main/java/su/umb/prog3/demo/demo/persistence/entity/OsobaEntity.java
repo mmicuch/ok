@@ -11,9 +11,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*; 
 import java.util.List;
 import jakarta.persistence.OneToMany;
-import su.umb.prog3.demo.demo.persistence.entity.OsobaVakcina;
 
 @Entity
+@Table(name = "osoba")
 public class OsobaEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,6 +29,9 @@ public class OsobaEntity {
     @OneToMany(mappedBy = "osoba", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<OsobaVakcina> vakciny;
+
+    @Column(name = "email")
+    private String email;
 
     // Remove "Entity" suffix to match JSON keys
     public Long getId() {
@@ -71,6 +74,14 @@ public class OsobaEntity {
         this.pohlavie = pohlavie;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     @Override
     public String toString() {
         return "OsobaEntity{" +
@@ -79,6 +90,7 @@ public class OsobaEntity {
                 ", priezvisko='" + priezvisko + '\'' +
                 ", rokNarodenia=" + rokNarodenia +
                 ", pohlavie=" + pohlavie +
+                ", email='" + email + '\'' +
                 '}';
     }
 }

@@ -3,7 +3,6 @@ package su.umb.prog3.demo.demo.persistence.entity;
 import jakarta.persistence.*;
 import su.umb.prog3.demo.demo.persistence.enums.TypVakciny;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*; 
 import jakarta.persistence.OneToMany;
 
 import java.util.List;

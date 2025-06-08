@@ -155,4 +155,22 @@ public class NotifikaciaDTO {
     public String getCeleMeno() {
         return (osobaMeno != null ? osobaMeno : "") + " " + (osobaPriezvisko != null ? osobaPriezvisko : "");
     }
+
+    // Metódy pre email notifikácie
+    public String getEmailOsoby() {
+        // Pre teraz vrátime placeholder email - v reálnej aplikácii by sa získal z databázy
+        return "patient@example.com"; 
+    }
+
+    public String getMenoOsoby() {
+        return getCeleMeno();
+    }
+
+    public String getNazovVakciny() {
+        return vakcinaNazov;
+    }
+
+    public java.time.LocalDate getDatumDavky() {
+        return datumPlanovanejDalsejDavky;
+    }
 }

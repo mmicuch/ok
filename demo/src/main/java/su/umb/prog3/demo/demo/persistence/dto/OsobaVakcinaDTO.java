@@ -1,70 +1,38 @@
 package su.umb.prog3.demo.demo.persistence.dto;
 
+import su.umb.prog3.demo.demo.persistence.entity.OsobaVakcina;
 import java.time.LocalDate;
 
 public class OsobaVakcinaDTO {
     private Long id;
     private Long osobaId;
     private Long vakcinaId;
-    private LocalDate datumVakciny;
-    private String nazovVakciny;
     private String menoOsoby;
     private String priezviskoOsoby;
-    
-    // Nové polia pre viacnásobné dávky
-    private Integer pocetDavok;
-    private Integer aktualnaDavka;
-    private Integer intervalMedziDavkami; // v dňoch
-    private LocalDate datumDalsejDavky;
-    private Boolean jeKompletna; // či je vakcinácia dokončená
-    
-    // Konštruktory
+    private String nazovVakciny;
+    private LocalDate datumVakciny;
+    private int aktualnaDavka;
+    private int potrebnaDavka;
+    private String emailOsoby;
+
     public OsobaVakcinaDTO() {}
-    
-    public OsobaVakcinaDTO(Long id, Long osobaId, Long vakcinaId, LocalDate datumVakciny, 
-                          String nazovVakciny, String menoOsoby, String priezviskoOsoby) {
-        this.id = id;
-        this.osobaId = osobaId;
-        this.vakcinaId = vakcinaId;
-        this.datumVakciny = datumVakciny;
-        this.nazovVakciny = nazovVakciny;
-        this.menoOsoby = menoOsoby;
-        this.priezviskoOsoby = priezviskoOsoby;
-        this.aktualnaDavka = 1;
-        this.jeKompletna = false;
+
+    public OsobaVakcinaDTO(OsobaVakcina osobaVakcina) {
+        this.id = osobaVakcina.getId();
+        this.osobaId = osobaVakcina.getOsoba() != null ? osobaVakcina.getOsoba().getId() : null;
+        this.vakcinaId = osobaVakcina.getVakcina() != null ? osobaVakcina.getVakcina().getId() : null;
+        this.menoOsoby = osobaVakcina.getOsoba() != null ? osobaVakcina.getOsoba().getMeno() : "";
+        this.priezviskoOsoby = osobaVakcina.getOsoba() != null ? osobaVakcina.getOsoba().getPriezvisko() : "";
+        this.nazovVakciny = osobaVakcina.getVakcina() != null ? osobaVakcina.getVakcina().getNazov() : "";
+        this.datumVakciny = osobaVakcina.getDatumAplikacie();
+        this.aktualnaDavka = osobaVakcina.getPoradieDavky();
+        this.potrebnaDavka = osobaVakcina.getVakcina() != null ? osobaVakcina.getVakcina().getPocetDavok() : 1;
+        this.emailOsoby = osobaVakcina.getOsoba() != null ? osobaVakcina.getOsoba().getEmail() : "";
     }
-    
-    // Rozšírený konštruktor pre viacnásobné dávky
-    public OsobaVakcinaDTO(Long id, Long osobaId, Long vakcinaId, LocalDate datumVakciny, 
-                          String nazovVakciny, String menoOsoby, String priezviskoOsoby,
-                          Integer pocetDavok, Integer aktualnaDavka, Integer intervalMedziDavkami) {
-        this(id, osobaId, vakcinaId, datumVakciny, nazovVakciny, menoOsoby, priezviskoOsoby);
-        this.pocetDavok = pocetDavok;
-        this.aktualnaDavka = aktualnaDavka;
-        this.intervalMedziDavkami = intervalMedziDavkami;
-        this.jeKompletna = aktualnaDavka >= pocetDavok;
-        
-        // Vypočítaj dátum ďalšej dávky ak nie je kompletná
-        if (!this.jeKompletna && intervalMedziDavkami != null) {
-            this.datumDalsejDavky = datumVakciny.plusDays(intervalMedziDavkami);
-        }
-    }
-    
+
     // Gettery a settery
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    
-    public Long getOsobaId() { return osobaId; }
-    public void setOsobaId(Long osobaId) { this.osobaId = osobaId; }
-    
-    public Long getVakcinaId() { return vakcinaId; }
-    public void setVakcinaId(Long vakcinaId) { this.vakcinaId = vakcinaId; }
-    
-    public LocalDate getDatumVakciny() { return datumVakciny; }
-    public void setDatumVakciny(LocalDate datumVakciny) { this.datumVakciny = datumVakciny; }
-    
-    public String getNazovVakciny() { return nazovVakciny; }
-    public void setNazovVakciny(String nazovVakciny) { this.nazovVakciny = nazovVakciny; }
     
     public String getMenoOsoby() { return menoOsoby; }
     public void setMenoOsoby(String menoOsoby) { this.menoOsoby = menoOsoby; }
@@ -72,80 +40,35 @@ public class OsobaVakcinaDTO {
     public String getPriezviskoOsoby() { return priezviskoOsoby; }
     public void setPriezviskoOsoby(String priezviskoOsoby) { this.priezviskoOsoby = priezviskoOsoby; }
     
-    // Nové gettery a settery
-    public Integer getPocetDavok() { return pocetDavok; }
-    public void setPocetDavok(Integer pocetDavok) { 
-        this.pocetDavok = pocetDavok;
-        updateKompletnost();
+    public String getNazovVakciny() { return nazovVakciny; }
+    public void setNazovVakciny(String nazovVakciny) { this.nazovVakciny = nazovVakciny; }
+    
+    public LocalDate getDatumVakciny() { return datumVakciny; }
+    public void setDatumVakciny(LocalDate datumVakciny) { this.datumVakciny = datumVakciny; }
+    
+    public int getAktualnaDavka() { return aktualnaDavka; }
+    public void setAktualnaDavka(int aktualnaDavka) { this.aktualnaDavka = aktualnaDavka; }
+    
+    public int getPotrebnaDavka() { return potrebnaDavka; }
+    public void setPotrebnaDavka(int potrebnaDavka) { this.potrebnaDavka = potrebnaDavka; }
+    
+    public String getEmailOsoby() { return emailOsoby; }
+    public void setEmailOsoby(String emailOsoby) { this.emailOsoby = emailOsoby; }
+
+    // Pridajte chýbajúce gettery/settery
+    public Long getOsobaId() {
+        return this.osobaId;
     }
     
-    public Integer getAktualnaDavka() { return aktualnaDavka; }
-    public void setAktualnaDavka(Integer aktualnaDavka) { 
-        this.aktualnaDavka = aktualnaDavka;
-        updateKompletnost();
+    public void setOsobaId(Long osobaId) {
+        this.osobaId = osobaId;
     }
     
-    public Integer getIntervalMedziDavkami() { return intervalMedziDavkami; }
-    public void setIntervalMedziDavkami(Integer intervalMedziDavkami) { 
-        this.intervalMedziDavkami = intervalMedziDavkami;
-        updateDatumDalsejDavky();
+    public Long getVakcinaId() {
+        return this.vakcinaId;
     }
     
-    public LocalDate getDatumDalsejDavky() { return datumDalsejDavky; }
-    public void setDatumDalsejDavky(LocalDate datumDalsejDavky) { this.datumDalsejDavky = datumDalsejDavky; }
-    
-    public Boolean getJeKompletna() { return jeKompletna; }
-    public void setJeKompletna(Boolean jeKompletna) { this.jeKompletna = jeKompletna; }
-    
-    // Pomocné metódy
-    private void updateKompletnost() {
-        if (pocetDavok != null && aktualnaDavka != null) {
-            this.jeKompletna = aktualnaDavka >= pocetDavok;
-        }
-    }
-    
-    private void updateDatumDalsejDavky() {
-        if (!Boolean.TRUE.equals(jeKompletna) && datumVakciny != null && intervalMedziDavkami != null) {
-            this.datumDalsejDavky = datumVakciny.plusDays(intervalMedziDavkami);
-        }
-    }
-    
-    // Metóda na získanie plného mena
-    public String getPlneMeno() {
-        return menoOsoby + " " + priezviskoOsoby;
-    }
-    
-    // Metóda na získanie progressu vakcinácie ako string
-    public String getProgressVakciny() {
-        if (pocetDavok == null || aktualnaDavka == null) {
-            return "1/1";
-        }
-        return aktualnaDavka + "/" + pocetDavok;
-    }
-    
-    // Metóda na získanie zostávajúcich dní do ďalšej dávky
-    public Long getZostavajuceDniDoDalsejDavky() {
-        if (datumDalsejDavky == null || Boolean.TRUE.equals(jeKompletna)) {
-            return null;
-        }
-        return java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(), datumDalsejDavky);
-    }
-    
-    @Override
-    public String toString() {
-        return "OsobaVakcinaDTO{" +
-                "id=" + id +
-                ", osobaId=" + osobaId +
-                ", vakcinaId=" + vakcinaId +
-                ", datumVakciny=" + datumVakciny +
-                ", nazovVakciny='" + nazovVakciny + '\'' +
-                ", menoOsoby='" + menoOsoby + '\'' +
-                ", priezviskoOsoby='" + priezviskoOsoby + '\'' +
-                ", pocetDavok=" + pocetDavok +
-                ", aktualnaDavka=" + aktualnaDavka +
-                ", intervalMedziDavkami=" + intervalMedziDavkami +
-                ", datumDalsejDavky=" + datumDalsejDavky +
-                ", jeKompletna=" + jeKompletna +
-                '}';
+    public void setVakcinaId(Long vakcinaId) {
+        this.vakcinaId = vakcinaId;
     }
 }

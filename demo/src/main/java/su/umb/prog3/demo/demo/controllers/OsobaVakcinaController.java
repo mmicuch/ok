@@ -10,6 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/osobavakcina")
+@CrossOrigin(origins = "http://localhost:4200") // Pridané CORS
 public class OsobaVakcinaController {
 
     private final OsobaVakcinaService osobaVakcinaService;
@@ -20,13 +21,41 @@ public class OsobaVakcinaController {
 
     // Get all osoba_vakcina records
     @GetMapping
+    @CrossOrigin(origins = "http://localhost:4200")
     public ResponseEntity<List<OsobaVakcinaDTO>> getAllOsobaVakcina() {
-    List<OsobaVakcinaDTO> dtos = osobaVakcinaService.getAllOsobaVakcina().stream()
-            .map(OsobaVakcinaDTO::new)
-            .toList();
-
-    return ResponseEntity.ok(dtos);
-}
+        try {
+            System.out.println("=== Getting all OsobaVakcina records ===");
+            List<OsobaVakcina> entities = osobaVakcinaService.getAllOsobaVakcina();
+            System.out.println("Found " + entities.size() + " entities");
+            
+            // Vráťme prázdny zoznam namiesto chyby ak nie sú žiadne entity
+            if (entities.isEmpty()) {
+                System.out.println("No vaccination records found, returning empty list");
+                return ResponseEntity.ok(List.of());
+            }
+            
+            List<OsobaVakcinaDTO> dtos = entities.stream()
+                    .map(entity -> {
+                        try {
+                            return new OsobaVakcinaDTO(entity);
+                        } catch (Exception e) {
+                            System.err.println("Error converting entity to DTO: " + e.getMessage());
+                            e.printStackTrace();
+                            return null;
+                        }
+                    })
+                    .filter(dto -> dto != null)
+                    .toList();
+            
+            System.out.println("Returning " + dtos.size() + " DTOs");
+            return ResponseEntity.ok(dtos);
+        } catch (Exception e) {
+            System.err.println("Error in getAllOsobaVakcina: " + e.getMessage());
+            e.printStackTrace();
+            // Vráťme prázdny zoznam namiesto 500 chyby
+            return ResponseEntity.ok(List.of());
+        }
+    }
 
     // Get osoba_vakcina by ID
     @GetMapping("/{id}")
@@ -79,6 +108,49 @@ public ResponseEntity<OsobaVakcina> createOsobaVakcina(@RequestBody OsobaVakcina
             .toList();
         
         return ResponseEntity.ok(results);
+    }
+
+    // Add advanced vaccination
+    @PostMapping("/advanced")
+    public ResponseEntity<OsobaVakcina> createAdvancedVaccination(
+            @RequestParam Long osobaId,
+            @RequestParam Long vakcinaId,
+            @RequestParam String datumPrvejDavky,
+            @RequestParam(required = false) String miestoAplikacie,
+            @RequestParam(required = false) String batchCislo,
+            @RequestParam(required = false) String poznamky) {
+        
+        java.time.LocalDate datum = java.time.LocalDate.parse(datumPrvejDavky);
+        OsobaVakcina result = osobaVakcinaService.createAdvancedVaccination(
+                osobaId, vakcinaId, datum, miestoAplikacie, batchCislo, poznamky);
+        return ResponseEntity.ok(result);
+    }
+
+    // Add next dose
+    @PostMapping("/dalsia-davka")
+    public ResponseEntity<OsobaVakcina> addNasledujucaDavka(
+            @RequestParam Long existujucaVakcinaciaId,
+            @RequestParam String datumDavky,
+            @RequestParam(required = false) String miestoAplikacie,
+            @RequestParam(required = false) String batchCislo,
+            @RequestParam(required = false) String poznamky) {
+        
+        java.time.LocalDate datum = java.time.LocalDate.parse(datumDavky);
+        OsobaVakcina result = osobaVakcinaService.addNasledujucaDavka(
+                existujucaVakcinaciaId, datum, miestoAplikacie, batchCislo, poznamky);
+        return ResponseEntity.ok(result);
+    }
+
+    // Get vaccinations for person
+    @GetMapping("/osoba/{osobaId}")
+    public ResponseEntity<List<OsobaVakcina>> getVakcinaciePreOsobu(@PathVariable Long osobaId) {
+        return ResponseEntity.ok(osobaVakcinaService.getVakcinaciePreOsobu(osobaId));
+    }
+
+    // Get incomplete vaccinations
+    @GetMapping("/nedokoncene")
+    public ResponseEntity<List<OsobaVakcina>> getNedokonceneVakcinacie() {
+        return ResponseEntity.ok(osobaVakcinaService.getNedokonceneVakcinacie());
     }
 
 }

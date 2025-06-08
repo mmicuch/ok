@@ -9,6 +9,7 @@ import su.umb.prog3.demo.demo.persistence.repos.VakcinaRepository;
 import su.umb.prog3.demo.demo.persistence.repos.OsobaVakcinaRepository;
 import su.umb.prog3.demo.demo.persistence.entity.OsobaVakcina;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,10 +38,6 @@ public class OsobaVakcinaService {
         return osobaVakcinaRepository.findById(id);
     }
 
-    public OsobaVakcina createOsobaVakcina(OsobaVakcina osobaVakcina) {
-        return osobaVakcinaRepository.save(osobaVakcina);
-    }
-
     public OsobaVakcina createOsobaVakcinaFromDto(OsobaVakcinaDTO dto) {
         OsobaEntity osoba = osobaRepository.findById(dto.getOsobaId())
             .orElseThrow(() -> new IllegalArgumentException("Invalid osobaId"));
@@ -57,21 +54,96 @@ public class OsobaVakcinaService {
         return osobaVakcinaRepository.save(ov);
     }
 
-    public Optional<OsobaVakcina> updateOsobaVakcina(Long id, OsobaVakcina osobaVakcina) {
-        if (osobaVakcinaRepository.existsById(id)) {
-            osobaVakcina.setIdEntity(id);
-            return Optional.of(osobaVakcinaRepository.save(osobaVakcina));
-        } else {
-            return Optional.empty();
+    public OsobaVakcina createAdvancedVaccination(Long osobaId, Long vakcinaId, 
+                                                 LocalDate datumPrvejDavky, String miestoAplikacie, 
+                                                 String batchCislo, String poznamky) {
+        OsobaEntity osoba = osobaRepository.findById(osobaId)
+                .orElseThrow(() -> new RuntimeException("Osoba neexistuje"));
+        
+        Vakcina vakcina = vakcinaRepository.findById(vakcinaId)
+                .orElseThrow(() -> new RuntimeException("Vakcína neexistuje"));
+
+        OsobaVakcina osobaVakcina = new OsobaVakcina();
+        osobaVakcina.setOsoba(osoba);
+        osobaVakcina.setVakcina(vakcina);
+        osobaVakcina.setDatumAplikacie(datumPrvejDavky);
+        osobaVakcina.setPoradieDavky(1);
+        osobaVakcina.setMiestoAplikacie(miestoAplikacie);
+        osobaVakcina.setBatchCislo(batchCislo);
+        osobaVakcina.setPoznamky(poznamky);
+
+        // Vypočítaj dátum ďalšej dávky
+        osobaVakcina.vypocitajDatumDalsejDavky();
+
+        return osobaVakcinaRepository.save(osobaVakcina);
+    }
+
+    public OsobaVakcina addNasledujucaDavka(Long existujucaVakcinaciaId, LocalDate datumDavky, 
+                                          String miestoAplikacie, String batchCislo, String poznamky) {
+        OsobaVakcina poslednaVakcina = osobaVakcinaRepository.findById(existujucaVakcinaciaId)
+                .orElseThrow(() -> new RuntimeException("Vakcinácia neexistuje"));
+
+        // Nájdi najnovšiu dávku pre túto kombináciu osoba-vakcína
+        Optional<OsobaVakcina> najnovsiaOpt = osobaVakcinaRepository
+                .findTopByOsobaIdAndVakcinaIdOrderByPoradieDavkyDesc(
+                        poslednaVakcina.getOsoba().getId(), 
+                        poslednaVakcina.getVakcina().getId());
+
+        if (najnovsiaOpt.isEmpty()) {
+            throw new RuntimeException("Nenašla sa predchádzajúca dávka");
         }
+
+        OsobaVakcina najnovsia = najnovsiaOpt.get();
+        
+        // Vytvor novú dávku
+        OsobaVakcina novaDavka = new OsobaVakcina();
+        novaDavka.setOsoba(najnovsia.getOsoba());
+        novaDavka.setVakcina(najnovsia.getVakcina());
+        novaDavka.setDatumAplikacie(datumDavky);
+        novaDavka.setPoradieDavky(najnovsia.getPoradieDavky() + 1);
+        novaDavka.setMiestoAplikacie(miestoAplikacie);
+        novaDavka.setBatchCislo(batchCislo);
+        novaDavka.setPoznamky(poznamky);
+
+        // Vypočítaj dátum ďalšej dávky
+        novaDavka.vypocitajDatumDalsejDavky();
+
+        return osobaVakcinaRepository.save(novaDavka);
+    }
+
+    public Optional<OsobaVakcina> updateOsobaVakcina(Long id, OsobaVakcina osobaVakcina) {
+        return osobaVakcinaRepository.findById(id)
+                .map(existing -> {
+                    existing.setDatumAplikacie(osobaVakcina.getDatumAplikacie());
+                    existing.setPoradieDavky(osobaVakcina.getPoradieDavky());
+                    existing.setMiestoAplikacie(osobaVakcina.getMiestoAplikacie());
+                    existing.setBatchCislo(osobaVakcina.getBatchCislo());
+                    existing.setPoznamky(osobaVakcina.getPoznamky());
+                    
+                    // Prepočítaj dátum ďalšej dávky
+                    existing.vypocitajDatumDalsejDavky();
+                    
+                    return osobaVakcinaRepository.save(existing);
+                });
     }
 
     public boolean deleteOsobaVakcina(Long id) {
         if (osobaVakcinaRepository.existsById(id)) {
             osobaVakcinaRepository.deleteById(id);
             return true;
-        } else {
-            return false;
         }
+        return false;
+    }
+
+    public List<OsobaVakcina> getVakcinaciePreOsobu(Long osobaId) {
+        return osobaVakcinaRepository.findByOsobaId(osobaId);
+    }
+
+    public List<OsobaVakcina> getVakcinaciePreVakcinu(Long vakcinaId) {
+        return osobaVakcinaRepository.findByVakcinaId(vakcinaId);
+    }
+
+    public List<OsobaVakcina> getNedokonceneVakcinacie() {
+        return osobaVakcinaRepository.findNedokonceneVakcinacie();
     }
 }

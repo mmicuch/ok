@@ -198,4 +198,16 @@ public class VakcinaDavkaService {
                 .mapToInt(VakcinaDavka::getDniOdPredchadzajucej)
                 .sum();
     }
+
+    public List<VakcinaDavka> getDavkyPreSchemu(Long schemaId) {
+        return vakcinaDavkaRepository.findByVakcinaSchemaIdOrderByPoradieDavky(schemaId);
+    }
+
+    public Optional<VakcinaDavka> getDavka(Long schemaId, int poradie) {
+        return Optional.ofNullable(vakcinaDavkaRepository.findByVakcinaSchemaIdAndPoradieDavky(schemaId, poradie));
+    }
+
+    public Optional<VakcinaDavka> getNasledujucaDavka(Long schemaId, int aktualnePoradie) {
+        return Optional.ofNullable(vakcinaDavkaRepository.findNasledujucuDavku(schemaId, aktualnePoradie));
+    }
 }

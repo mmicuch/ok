@@ -11,17 +11,20 @@ export class AuthInterceptor implements HttpInterceptor {
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const token = this.auth.getToken();
+    console.log('Interceptor: Token available:', token ? 'Yes' : 'No');
     
     // Add token to authorized requests if available
     if (token) {
+      console.log('Adding Authorization header to request:', req.url);
       const cloned = req.clone({
         setHeaders: { Authorization: `Bearer ${token}` }
       });
       
       return next.handle(cloned).pipe(
         catchError((error: HttpErrorResponse) => {
+          console.error('Request failed:', error.status, error.message);
           // Handle 401 Unauthorized errors (expired token, etc.)
-          if (error.status === 401) {
+          if (error.status === 401 || error.status === 403) {
             this.auth.logout();
             this.router.navigate(['/login']);
           }
@@ -30,6 +33,7 @@ export class AuthInterceptor implements HttpInterceptor {
       );
     }
     
+    console.log('No token available for request:', req.url);
     return next.handle(req);
   }
 }

@@ -26,6 +26,12 @@ public class VakcinaSchema {
     @Column(name = "popis")
     private String popis;
 
+    @Column(name = "nazov_schemy")
+    private String nazovSchemy;
+
+    @Column(name = "je_aktívna")
+    private boolean jeAktivna;
+
     @OneToMany(mappedBy = "vakcinaSchema", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<VakcinaDavka> davky = new ArrayList<>();
 
@@ -69,6 +75,22 @@ public class VakcinaSchema {
 
     public void setPopis(String popis) {
         this.popis = popis;
+    }
+
+    public String getNazovSchemy() {
+        return nazovSchemy;
+    }
+
+    public void setNazovSchemy(String nazovSchemy) {
+        this.nazovSchemy = nazovSchemy;
+    }
+
+    public boolean isJeAktivna() {
+        return jeAktivna;
+    }
+
+    public void setJeAktivna(boolean jeAktivna) {
+        this.jeAktivna = jeAktivna;
     }
 
     public List<VakcinaDavka> getDavky() {

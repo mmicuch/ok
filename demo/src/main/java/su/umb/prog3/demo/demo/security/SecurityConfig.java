@@ -1,5 +1,6 @@
 package su.umb.prog3.demo.demo.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,79 +18,62 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
+import java.util.Arrays;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthFilter;
-    private final AdminUserDetailsService adminUserDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter, AdminUserDetailsService adminUserDetailsService) {
-        this.jwtAuthFilter = jwtAuthFilter;
-        this.adminUserDetailsService = adminUserDetailsService;
+    public SecurityConfig(@Autowired(required = false) JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .cors().and()
-            .csrf().disable()
-            .authorizeHttpRequests(auth -> auth
-                // Public endpoints
-                .requestMatchers("/api/auth/login").permitAll()
-                .requestMatchers("/api/vakcina/all").permitAll()
-                .requestMatchers("/api/osoby/all").permitAll()
-                .requestMatchers("/api/osobavakcina").permitAll()
-                // Authenticated endpoints
-                .requestMatchers("/api/osobavakcina/search").authenticated() // Require authentication
-                .requestMatchers("/api/admin/**").authenticated()
-                .requestMatchers("/api/vakcina/add").authenticated()
-                .requestMatchers("/api/vakcina/{id}").authenticated()
-                .requestMatchers("/api/osoby/add").authenticated()
-                .requestMatchers("/api/osoby/remove/**").authenticated()
-                .requestMatchers("/api/osoby/vakcina/**").authenticated()
-                .requestMatchers("/api/osobavakcina/add").authenticated()
-                .requestMatchers("/api/osobavakcina/{id}").authenticated()
-                // Other endpoints
-                .anyRequest().authenticated()
+        System.out.println("=== CONFIGURING SECURITY ===");
+        http.cors(withDefaults())
+            .csrf(csrf -> csrf.disable())
+            .headers(headers -> headers.frameOptions().deny())
+            .authorizeHttpRequests(authz -> authz
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/**").permitAll() // Všetko povolené pre debugging
+                .anyRequest().permitAll() // Všetko povolené
             )
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
+        if (jwtAuthenticationFilter != null) {
+            http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        }
+
+        System.out.println("=== SECURITY CONFIGURED ===");
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200")); // Allow frontend origin
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Allow necessary HTTP methods
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type")); // Allow specific headers
-        config.setAllowCredentials(true); // Allow credentials
-
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(Arrays.asList("Authorization"));
+        
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config); // Apply CORS settings globally
+        source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
-
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(adminUserDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 }

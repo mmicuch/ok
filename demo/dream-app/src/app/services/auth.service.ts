@@ -11,7 +11,7 @@ interface AuthResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private tokenKey = 'token';
+  private tokenKey = 'token'; // Zmenené z 'authToken' na 'token'
   private usernameKey = 'username';
   private apiUrl = 'http://localhost:8081/api';  // Changed from https to http and removed /auth
 
