@@ -1,5 +1,6 @@
 package su.umb.prog3.demo.demo.persistence.Services;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import su.umb.prog3.demo.demo.persistence.entity.OsobaEntity;
 import su.umb.prog3.demo.demo.persistence.entity.OsobaVakcina;
@@ -11,6 +12,7 @@ import su.umb.prog3.demo.demo.persistence.repos.OsobaVakcinaRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Collections;
 
 @Service
 public class OsobaService {
@@ -19,21 +21,36 @@ public class OsobaService {
     private final VakcinaRepository vakcinaRepository;
     private final OsobaVakcinaRepository osobaVakcinaRepository;
 
-    public OsobaService(OsobaRepository osobaRepository, VakcinaRepository vakcinaRepository, OsobaVakcinaRepository osobaVakcinaRepository) {
+    public OsobaService(@Autowired(required = false) OsobaRepository osobaRepository, 
+                       @Autowired(required = false) VakcinaRepository vakcinaRepository, 
+                       @Autowired(required = false) OsobaVakcinaRepository osobaVakcinaRepository) {
         this.osobaRepository = osobaRepository;
         this.vakcinaRepository = vakcinaRepository;
         this.osobaVakcinaRepository = osobaVakcinaRepository;
+        System.out.println("OsobaService initialized - repositories available: " + 
+                          (osobaRepository != null && vakcinaRepository != null && osobaVakcinaRepository != null));
     }
 
     public List<OsobaEntity> getAllOsoby() {
+        if (osobaRepository == null) {
+            System.err.println("OsobaRepository not available, returning empty list");
+            return Collections.emptyList();
+        }
         return (List<OsobaEntity>) osobaRepository.findAll();
     }
 
     public Optional<OsobaEntity> getOsobaById(Long id) {
+        if (osobaRepository == null) {
+            System.err.println("OsobaRepository not available");
+            return Optional.empty();
+        }
         return osobaRepository.findById(id);
     }
 
     public OsobaEntity createOsoba(OsobaEntity osoba) {
+        if (osobaRepository == null) {
+            throw new RuntimeException("Database not available");
+        }
         return osobaRepository.save(osoba);
     }
 
